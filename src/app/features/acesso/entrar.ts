@@ -95,6 +95,8 @@ export class Entrar {
   /** ?motivo=expirou / ?mensagem=... vindos de outras telas (withComponentInputBinding). */
   readonly motivo = input<string>();
   readonly mensagem = input<string>();
+  /** Página que a pessoa tentou abrir antes de logar. */
+  readonly voltar = input<string>();
 
   protected readonly modo = signal<Modo>((localStorage.getItem('rotacerta.modo') as Modo) || 'app');
   protected readonly enviando = signal(false);
@@ -131,7 +133,11 @@ export class Entrar {
       : this.api.entrarPainel(this.painel.getRawValue().email.trim(), this.painel.getRawValue().senha);
 
     this.sessao.iniciar(token$).subscribe({
-      next: () => this.router.navigateByUrl(this.sessao.inicio()),
+      next: () => {
+        // só volta para dentro da "casa" certa (entregador não cai no painel e vice-versa)
+        const destino = this.voltar();
+        this.router.navigateByUrl(destino?.startsWith(this.sessao.inicio()) ? destino : this.sessao.inicio());
+      },
       error: e => {
         this.enviando.set(false);
         const err = erroApi(e);

@@ -1,18 +1,24 @@
 import { inject } from '@angular/core';
-import { CanActivateFn, CanMatchFn, Router } from '@angular/router';
+import { CanActivateFn, CanMatchFn, Router, UrlSegment } from '@angular/router';
 import { SessaoService } from './sessao.service';
 
+/** Manda para o login lembrando a página pedida (?voltar=/painel/rotas/3). */
+function paraLogin(segmentos: UrlSegment[]) {
+  const voltar = '/' + segmentos.map(s => s.path).join('/');
+  return inject(Router).createUrlTree(['/entrar'], { queryParams: { voltar } });
+}
+
 /** Só deixa entrar no app quem tem credencial APP_ENTREGADOR. */
-export const soEntregador: CanMatchFn = () => {
+export const soEntregador: CanMatchFn = (_rota, segmentos) => {
   const s = inject(SessaoService);
-  if (!s.logado()) return inject(Router).createUrlTree(['/entrar']);
+  if (!s.logado()) return paraLogin(segmentos);
   return s.ehEntregador() || inject(Router).createUrlTree(['/painel']);
 };
 
 /** Só deixa entrar no painel quem tem credencial PAINEL_WEB. */
-export const soPainel: CanMatchFn = () => {
+export const soPainel: CanMatchFn = (_rota, segmentos) => {
   const s = inject(SessaoService);
-  if (!s.logado()) return inject(Router).createUrlTree(['/entrar']);
+  if (!s.logado()) return paraLogin(segmentos);
   return !s.ehEntregador() || inject(Router).createUrlTree(['/app']);
 };
 
