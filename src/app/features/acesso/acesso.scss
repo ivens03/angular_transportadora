@@ -1,0 +1,20 @@
+:host { display: block; min-height: 100dvh; background: var(--rc-fundo); }
+.faixa { background: var(--rc-amarelo); padding: 20px var(--rc-gutter) 72px; display: flex; justify-content: center; }
+.caixa { max-width: 440px; margin: -56px auto 0; padding: 0 var(--rc-gutter) 32px; }
+.caixa > .card { padding: 24px 20px; }
+h1 { font-size: 22px; margin-bottom: 4px; }
+.sub { color: var(--rc-texto-2); font-size: 14px; margin-bottom: 20px; }
+form { display: flex; flex-direction: column; gap: 16px; }
+.abas { display: grid; grid-template-columns: 1fr 1fr; background: var(--rc-cinza-suave); border-radius: 8px; padding: 4px; margin-bottom: 20px; }
+.abas button { display: flex; align-items: center; justify-content: center; gap: 6px; min-height: 44px; border: 0; border-radius: 6px; background: none; font-weight: 600; font-size: 14px; color: var(--rc-texto-2); cursor: pointer; }
+.abas button .icone { font-size: 20px; }
+.abas button.ativa { background: #fff; color: var(--rc-texto); box-shadow: var(--rc-sombra); }
+.senha { position: relative; }
+.senha .entrada { padding-right: 48px; }
+.senha .olho { position: absolute; right: 4px; top: 4px; }
+.rodape { text-align: center; margin-top: 20px; font-size: 14px; display: flex; flex-direction: column; gap: 10px; }
+@media (min-width: 768px) {
+  .faixa { padding-bottom: 96px; }
+  .caixa { margin-top: -72px; }
+  .caixa > .card { padding: 32px; }
+}

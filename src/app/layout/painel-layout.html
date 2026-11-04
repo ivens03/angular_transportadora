@@ -1,0 +1,88 @@
+<header class="topo">
+  <div class="topo-linha">
+    <button class="btn btn-icone so-celular" type="button" (click)="menuAberto.set(true)" aria-label="Abrir menu">
+      <span class="icone">menu</span>
+    </button>
+    <a routerLink="/painel" class="marca" aria-label="RotaCerta — início"><app-logo /></a>
+
+    @if (podeBuscarCargas()) {
+      <form class="busca" role="search" (ngSubmit)="buscar()">
+        <input class="busca-campo" name="busca" [(ngModel)]="busca" placeholder="Buscar cargas por bairro…" autocomplete="off" enterkeyhint="search">
+        <button class="busca-botao" type="submit" aria-label="Buscar"><span class="icone">search</span></button>
+      </form>
+    } @else {
+      <div class="cresce"></div>
+    }
+
+    <div class="usuario">
+      <button class="usuario-botao" type="button" (click)="menuUsuario.set(!menuUsuario())" [attr.aria-expanded]="menuUsuario()">
+        <span class="avatar">{{ iniciais() }}</span>
+        <span class="so-desktop usuario-nome">{{ sessao.primeiroNome() }}</span>
+        <span class="icone so-desktop">expand_more</span>
+      </button>
+      @if (menuUsuario()) {
+        <div class="fundo-transparente" (click)="menuUsuario.set(false)"></div>
+        <div class="pop">
+          <div class="pop-cabecalho">
+            <span class="avatar grande">{{ iniciais() }}</span>
+            <div>
+              <div class="forte">{{ sessao.sessao()?.nome }}</div>
+              <div class="pequeno texto-2">{{ perfil().texto }} · {{ sessao.sessao()?.matricula }}</div>
+            </div>
+          </div>
+          <a class="pop-item" routerLink="/painel/conta"><span class="icone">person</span> Minha conta</a>
+          <button class="pop-item" type="button" (click)="sessao.sair()"><span class="icone">logout</span> Sair</button>
+        </div>
+      }
+    </div>
+  </div>
+
+  <div class="topo-sub">
+    <span class="local so-celular"><span class="icone">location_on</span> Saindo de <b>CD Fortaleza</b></span>
+    <nav class="categorias" aria-label="Seções">
+      @for (i of itens(); track i.link) {
+        <a [routerLink]="i.link" routerLinkActive="ativo" [routerLinkActiveOptions]="{ exact: !!i.exato }">{{ i.rotulo }}</a>
+      }
+    </nav>
+    <span class="so-desktop modulo">{{ sessao.sessao()?.modulo }}</span>
+  </div>
+</header>
+
+@if (sessao.diasParaVencer(); as dias) {
+  @if (dias <= 5) {
+    <div class="faixa-aviso">
+      <span class="icone">key</span>
+      Sua senha vence em {{ dias }} dia{{ dias === 1 ? '' : 's' }}.
+      <a routerLink="/painel/conta">Trocar agora</a>
+    </div>
+  }
+}
+
+<main>
+  <router-outlet />
+</main>
+
+<!-- gaveta (celular) -->
+@if (menuAberto()) {
+  <div class="gaveta-fundo" (click)="menuAberto.set(false)"></div>
+  <aside class="gaveta" aria-label="Menu">
+    <div class="gaveta-cabecalho">
+      <span class="avatar grande">{{ iniciais() }}</span>
+      <div class="cresce">
+        <div class="forte">Olá, {{ sessao.primeiroNome() }}</div>
+        <div class="pequeno">{{ perfil().texto }} · {{ sessao.sessao()?.matricula }}</div>
+      </div>
+      <button class="btn btn-icone" type="button" (click)="menuAberto.set(false)" aria-label="Fechar menu"><span class="icone">close</span></button>
+    </div>
+    <nav class="gaveta-itens">
+      @for (i of itens(); track i.link) {
+        <a [routerLink]="i.link" routerLinkActive="ativo" [routerLinkActiveOptions]="{ exact: !!i.exato }">
+          <span class="icone">{{ i.icone }}</span>{{ i.rotulo }}
+        </a>
+      }
+      <hr>
+      <a routerLink="/painel/conta" routerLinkActive="ativo"><span class="icone">person</span>Minha conta</a>
+      <button type="button" (click)="sessao.sair()"><span class="icone">logout</span>Sair</button>
+    </nav>
+  </aside>
+}

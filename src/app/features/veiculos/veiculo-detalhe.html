@@ -1,0 +1,103 @@
+<div class="conteudo">
+  <a class="voltar" routerLink="/painel/veiculos"><span class="icone">arrow_back</span> Frota</a>
+
+  @if (erro()) { <div class="aviso erro"><span class="icone">error</span>{{ erro() }}</div> }
+  @if (veiculo(); as v) {
+    <div class="cabecalho-pagina">
+      <div>
+        <div class="linha"><h1>{{ v.placa }}</h1><app-status tipo="veiculo" [valor]="v.status" /></div>
+        <p>{{ v.marca }} {{ v.modelo }} · {{ tipos[v.tipo].texto }} · {{ v.anoFabricacao }}</p>
+      </div>
+      <div class="acoes">
+        <a class="btn btn-secundario" [routerLink]="['/painel/veiculos', v.id, 'editar']"><span class="icone">edit</span> Editar</a>
+        <button class="btn btn-primario" (click)="abrir()"><span class="icone">local_gas_station</span> Registrar abastecimento</button>
+      </div>
+    </div>
+
+    <div class="divisao">
+      <div class="pilha-g">
+        @if (veMetricas) {
+          <section class="card">
+            <div class="linha-entre"><h2 class="card-titulo" style="margin:0">Consumo — últimos 30 dias</h2>
+              @if (metrica(); as m) { <app-status tipo="consumo" [valor]="m.situacao" /> }</div>
+            @if (metrica(); as m) {
+              <div class="grade-2" style="margin-top:12px">
+                <div class="kpi"><span class="valor">{{ m.consumoMedioKmPorLitro ?? '–' }}<small>km/l</small></span>
+                  <span class="rotulo">referência {{ m.consumoReferenciaKmPorLitro ?? '–' }} km/l
+                    @if (m.desvioPercentual !== null) { · <b [class.vermelho]="m.situacao === 'CONSUMO_ACIMA_DO_ESPERADO'">{{ m.desvioPercentual > 0 ? '+' : '' }}{{ m.desvioPercentual }}%</b> }</span></div>
+                <div class="kpi"><span class="valor">{{ m.custoPorKm !== null ? (m.custoPorKm | currency) : '–' }}</span><span class="rotulo">custo por km</span></div>
+                <div class="kpi"><span class="valor">{{ m.kmRodados | number }}<small>km</small></span><span class="rotulo">rodados</span></div>
+                <div class="kpi"><span class="valor">{{ m.gastoTotal !== null ? (m.gastoTotal | currency) : '–' }}</span><span class="rotulo">{{ m.quantidadeAbastecimentos }} abastecimento(s)</span></div>
+              </div>
+            } @else { <div class="esqueleto" style="height:90px;margin-top:12px"></div> }
+          </section>
+        }
+
+        <section>
+          <h2 class="secao-titulo">Abastecimentos</h2>
+          @if (abastecimentos(); as p) {
+            @if (p.content.length) {
+              <ul class="lista card sem-padding">
+                @for (a of p.content; track a.id) {
+                  <li class="item" style="cursor:default">
+                    <span class="item-icone"><span class="icone">local_gas_station</span></span>
+                    <span class="cresce">
+                      <span class="item-titulo" style="display:block">{{ a.litros | number: '1.0-3' }} L de {{ nomesCombustivel[a.combustivel] }}</span>
+                      <span class="item-sub">{{ a.dataHora | date }} · {{ a.odometroKm | number }} km @if (a.posto) { · {{ a.posto }} }</span>
+                    </span>
+                    <span class="direita" style="text-align:right">
+                      <span class="item-destaque">{{ a.valorTotal !== null ? (a.valorTotal | currency) : '–' }}</span>
+                      @if (a.precoLitro !== null) { <span class="mini texto-2" style="display:block">{{ a.precoLitro | currency: 'BRL' : 'symbol' : '1.3-3' }}/L</span> }
+                    </span>
+                  </li>
+                }
+              </ul>
+              <app-paginacao [pagina]="p" (ir)="carregarAbastecimentos($event)" />
+            } @else {
+              <div class="card"><app-vazio icone="local_gas_station" titulo="Nenhum abastecimento" texto="Registre os abastecimentos para medir o consumo." /></div>
+            }
+          } @else { <div class="esqueleto" style="height:120px"></div> }
+        </section>
+      </div>
+
+      <aside class="card">
+        <h2 class="card-titulo">Ficha</h2>
+        <dl class="ficha">
+          <dt>Quilometragem</dt><dd>{{ v.quilometragemAtual ?? 0 | number }} km</dd>
+          <dt>Carga máxima</dt><dd>{{ v.capacidadeCargaKg | number: '1.0-2' }} kg</dd>
+          <dt>Volume</dt><dd>{{ v.capacidadeVolumeM3 | number: '1.0-2' }} m³</dd>
+          <dt>Combustível</dt><dd>{{ nomesCombustivel[v.combustivel] }}</dd>
+          <dt>Consumo de referência</dt><dd>{{ v.consumoReferenciaKmPorLitro ? (v.consumoReferenciaKmPorLitro | number: '1.0-2') + ' km/l' : '—' }}</dd>
+          <dt>RENAVAM</dt><dd>{{ v.renavam ?? '—' }}</dd>
+          <dt>Cadastrado por</dt><dd>{{ v.cadastradoPor }}</dd>
+          <dt>Atualizado</dt><dd>{{ v.atualizadoEm | date }}</dd>
+        </dl>
+      </aside>
+    </div>
+
+    <app-folha [(aberta)]="folha" titulo="Registrar abastecimento">
+      <form [formGroup]="form" (ngSubmit)="registrar()" class="pilha" style="gap:14px">
+        <div class="campo"><label for="ab-data">Data e hora</label><input id="ab-data" class="entrada" type="datetime-local" formControlName="dataHora"></div>
+        <div class="grade-2">
+          <div class="campo"><label for="ab-odo">Odômetro (km)</label><input id="ab-odo" class="entrada" type="number" inputmode="numeric" formControlName="odometroKm"></div>
+          <div class="campo"><label for="ab-l">Litros</label><input id="ab-l" class="entrada" type="number" inputmode="decimal" step="0.001" formControlName="litros"></div>
+        </div>
+        <div class="grade-2">
+          <div class="campo"><label for="ab-v">Valor total (R$)</label><input id="ab-v" class="entrada" type="number" inputmode="decimal" step="0.01" formControlName="valorTotal"></div>
+          <div class="campo"><label for="ab-c">Combustível</label>
+            <select id="ab-c" class="entrada" formControlName="combustivel">
+              @for (c of opcoesCombustivel(); track c) { <option [value]="c">{{ nomesCombustivel[c] }}</option> }
+            </select></div>
+        </div>
+        <div class="campo"><label for="ab-p">Posto <span class="texto-3">(opcional)</span></label><input id="ab-p" class="entrada" formControlName="posto" maxlength="120"></div>
+        <span class="dica pequeno texto-2">Encha o tanque: o consumo é medido entre dois abastecimentos (km rodados ÷ litros).</span>
+        @if (erroForm()) { <div class="aviso erro"><span class="icone">error</span>{{ erroForm() }}</div> }
+        <button class="btn btn-primario btn-bloco" type="submit" [disabled]="salvando()">
+          @if (salvando()) { <span class="icone girando">progress_activity</span> } Registrar
+        </button>
+      </form>
+    </app-folha>
+  } @else if (!erro()) {
+    <div class="esqueleto" style="height:200px"></div>
+  }
+</div>

@@ -1,0 +1,98 @@
+<div class="conteudo">
+  <a class="voltar" routerLink="/painel/rotas"><span class="icone">arrow_back</span> Rotas</a>
+
+  @if (erro() && !rota()) {
+    <div class="aviso erro"><span class="icone">error</span>{{ erro() }}</div>
+  } @else if (rota(); as r) {
+    <div class="cabecalho-pagina">
+      <div>
+        <div class="linha quebra"><h1>{{ r.codigo }}</h1><app-status tipo="rota" [valor]="r.status" [comIcone]="true" />
+          @if (r.status === 'EM_ANDAMENTO') { <span class="ao-vivo"><span class="ponto"></span> ao vivo</span> }</div>
+        <p>{{ r.entregadorNome }} ({{ r.entregadorMatricula }}) · {{ r.veiculoPlaca }} {{ r.veiculoModelo }}</p>
+      </div>
+      @if (podeCancelar && r.status === 'PLANEJADA') {
+        <div class="acoes"><button class="btn btn-perigo" (click)="confirmar.set(true)"><span class="icone">block</span> Cancelar rota</button></div>
+      }
+    </div>
+
+    @if (confirmar()) {
+      <div class="card" style="margin-bottom:16px;border-left:4px solid var(--rc-vermelho)">
+        <p class="forte">Cancelar a rota {{ r.codigo }}?</p>
+        <p class="pequeno texto-2" style="margin:4px 0 12px">As {{ r.paradas.length }} cargas voltam para "aguardando rota".</p>
+        <div class="linha"><button class="btn btn-perigo btn-pequeno" (click)="cancelar()">Sim, cancelar</button>
+          <button class="btn btn-texto btn-pequeno" (click)="confirmar.set(false)">Voltar</button></div>
+      </div>
+    }
+
+    <div class="divisao larga">
+      <div class="card sem-padding mapa-card">
+        <app-mapa-rota [origem]="origem()" [paradas]="r.paradas" [trajeto]="r.trajeto" [percurso]="percurso()"
+                       [atual]="r.ultimaPosicao" [proxima]="r.proximaParada" />
+      </div>
+
+      <div class="pilha">
+        <div class="card pilha">
+          <div class="grade-2">
+            <div class="kpi"><span class="valor">{{ r.progresso.percentual }}<small>%</small></span><span class="rotulo">concluído</span></div>
+            <div class="kpi"><span class="valor">{{ r.distanciaEstimadaKm | number: '1.0-1' }}<small>km</small></span><span class="rotulo">~{{ r.duracaoEstimadaMin }} min estimados</span></div>
+          </div>
+          <div class="barra-progresso"><span [style.width.%]="r.progresso.percentual"></span></div>
+          <div class="linha quebra pequeno">
+            <span class="etiqueta verde">{{ r.progresso.entregues }} entregue(s)</span>
+            @if (r.progresso.naoEntregues) { <span class="etiqueta vermelho">{{ r.progresso.naoEntregues }} não entregue(s)</span> }
+            <span class="etiqueta cinza">{{ r.progresso.pendentes }} pendente(s)</span>
+          </div>
+        </div>
+
+        @if (r.status === 'EM_ANDAMENTO') {
+          <div class="card pilha" style="gap:8px">
+            @if (proxima(); as p) {
+              <span class="mini forte laranja">PRÓXIMA PARADA · {{ p.ordem }}</span>
+              <b>{{ p.destinatarioNome }}</b>
+              <span class="pequeno texto-2">{{ p.endereco }} — {{ p.bairro }}</span>
+              @if (r.minutosAteProximaParada !== null) {
+                <span class="pequeno"><span class="icone" style="font-size:16px;vertical-align:-3px">schedule</span> chega em ~{{ r.minutosAteProximaParada }} min ({{ r.distanciaAteProximaParadaKm | number: '1.0-1' }} km)</span>
+              }
+            }
+            <hr class="divisor" style="margin:4px 0">
+            @if (semSinal()) {
+              <span class="pequeno vermelho"><span class="icone" style="font-size:16px;vertical-align:-3px">location_disabled</span>
+                {{ atraso() ? 'Sem sinal há ' + atraso() : 'Ainda sem posição de GPS' }}</span>
+            } @else {
+              <span class="pequeno verde"><span class="icone" style="font-size:16px;vertical-align:-3px">my_location</span>
+                Última posição há {{ atraso() }} @if (r.ultimaPosicao?.velocidadeKmH) { · {{ r.ultimaPosicao?.velocidadeKmH | number: '1.0-0' }} km/h }</span>
+            }
+          </div>
+        }
+
+        <div class="card sem-padding">
+          <ol class="paradas">
+            @for (p of r.paradas; track p.ordem) {
+              <li [class.atual]="p.ordem === r.proximaParada && r.status === 'EM_ANDAMENTO'">
+                <span class="bolinha {{ p.status.toLowerCase() }}">{{ p.ordem }}</span>
+                <div class="cresce">
+                  <div class="forte">{{ p.destinatarioNome }}</div>
+                  <div class="pequeno texto-2">{{ p.bairro }} · {{ p.cargaCodigo }} · {{ p.distanciaDoAnteriorKm | number: '1.0-1' }} km</div>
+                  @if (p.motivo) { <div class="pequeno vermelho">{{ p.motivo }}</div> }
+                </div>
+                <div class="direita">
+                  <app-status tipo="parada" [valor]="p.status" />
+                  @if (p.finalizadaEm) { <span class="mini texto-3">{{ p.finalizadaEm | date: 'HH:mm' }}</span> }
+                </div>
+              </li>
+            }
+          </ol>
+        </div>
+
+        <div class="card pequeno texto-2 linha-tempo">
+          <span>Criada por {{ r.criadaPor }} · {{ r.criadaEm | date }}</span>
+          @if (r.iniciadaEm) { <span>Iniciada · {{ r.iniciadaEm | date }}</span> }
+          @if (r.concluidaEm) { <span>Concluída · {{ r.concluidaEm | date }}</span> }
+          @if (r.canceladaEm) { <span>Cancelada · {{ r.canceladaEm | date }}</span> }
+        </div>
+      </div>
+    </div>
+  } @else {
+    <div class="esqueleto" style="height:50dvh"></div>
+  }
+</div>

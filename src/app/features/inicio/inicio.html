@@ -1,0 +1,100 @@
+<div class="conteudo pilha-g">
+  <section class="boas-vindas">
+    <div>
+      <p class="pequeno texto-2">{{ perfil()?.texto }} · {{ sessao.sessao()?.modulo }}</p>
+      <h1>{{ saudacao }}, {{ sessao.primeiroNome() }}!</h1>
+    </div>
+  </section>
+
+  <!-- números do dia -->
+  <section class="grade-2 md-kpis">
+    @if (sessao.tem(P.ENTREGA_CADASTRAR)) {
+      <a class="card kpi-card" routerLink="/painel/cargas" [queryParams]="{ status: 'AGUARDANDO_ROTA' }">
+        <span class="icone amarelo-bg">schedule</span>
+        <div class="kpi"><span class="valor">{{ cargasAguardando() ?? '–' }}</span><span class="rotulo">cargas aguardando rota</span></div>
+      </a>
+      <a class="card kpi-card" routerLink="/painel/cargas" [queryParams]="{ status: 'EM_TRANSITO' }">
+        <span class="icone azul-bg">local_shipping</span>
+        <div class="kpi"><span class="valor">{{ cargasEmTransito() ?? '–' }}</span><span class="rotulo">cargas em trânsito</span></div>
+      </a>
+    }
+    @if (sessao.tem(P.MAPA_ACOMPANHAR) && !sessao.tem(P.ENTREGA_CADASTRAR)) {
+      <a class="card kpi-card" routerLink="/painel/rotas" [queryParams]="{ status: 'PLANEJADA' }">
+        <span class="icone amarelo-bg">event</span>
+        <div class="kpi"><span class="valor">{{ rotasPlanejadas() ?? '–' }}</span><span class="rotulo">rotas planejadas</span></div>
+      </a>
+    }
+    @if (sessao.tem(P.VEICULO_GERENCIAR)) {
+      <a class="card kpi-card" routerLink="/painel/veiculos" [queryParams]="{ status: 'ATIVO' }">
+        <span class="icone verde-bg">directions_car</span>
+        <div class="kpi"><span class="valor">{{ veiculosAtivos() ?? '–' }}</span><span class="rotulo">veículos ativos</span></div>
+      </a>
+      <a class="card kpi-card" routerLink="/painel/veiculos" [queryParams]="{ status: 'EM_MANUTENCAO' }">
+        <span class="icone laranja-bg">build</span>
+        <div class="kpi"><span class="valor">{{ veiculosManutencao() ?? '–' }}</span><span class="rotulo">em manutenção</span></div>
+      </a>
+    }
+    @if (sessao.tem(P.USUARIO_GERENCIAR)) {
+      <a class="card kpi-card" routerLink="/painel/usuarios">
+        <span class="icone azul-bg">group</span>
+        <div class="kpi"><span class="valor">{{ totalUsuarios() ?? '–' }}</span><span class="rotulo">usuários cadastrados</span></div>
+      </a>
+    }
+  </section>
+
+  @if (frota(); as f) {
+    <a class="card consumo" routerLink="/painel/consumo">
+      <div class="linha-entre">
+        <h2 class="card-titulo" style="margin:0">Combustível nos últimos 30 dias</h2>
+        <span class="icone texto-3">chevron_right</span>
+      </div>
+      <div class="grade-2">
+        <div class="kpi"><span class="valor">{{ (f.gastoTotal ?? 0) | currency }}</span><span class="rotulo">gasto total</span></div>
+        <div class="kpi"><span class="valor">{{ f.consumoMedioKmPorLitro ?? '–' }}<small>km/l</small></span><span class="rotulo">média da frota</span></div>
+        <div class="kpi"><span class="valor">{{ f.kmRodados | number }}<small>km</small></span><span class="rotulo">rodados</span></div>
+        <div class="kpi"><span class="valor" [class.vermelho]="f.veiculosComConsumoAcimaDoEsperado">{{ f.veiculosComConsumoAcimaDoEsperado }}</span><span class="rotulo">veículo(s) com consumo acima</span></div>
+      </div>
+    </a>
+  }
+
+  @if (rotasAtivas(); as ativas) {
+    <section>
+      <div class="linha-entre"><h2 class="secao-titulo">Na rua agora</h2><a routerLink="/painel/rotas" class="pequeno">Ver todas</a></div>
+      @if (ativas.length) {
+        <ul class="lista card sem-padding">
+          @for (r of ativas; track r.id) {
+            <li><a class="item" [routerLink]="['/painel/rotas', r.id]">
+              <span class="item-icone azul-bg"><span class="icone">local_shipping</span></span>
+              <span class="cresce">
+                <span class="item-titulo">{{ r.entregadorNome }}</span>
+                <span class="item-sub" style="display:block">{{ r.codigo }} · {{ r.veiculoPlaca }} · {{ r.paradasBaixadas }}/{{ r.totalParadas }} paradas</span>
+                <span class="barra-progresso" style="margin-top:6px; display:block"><span [style.width.%]="r.totalParadas ? r.paradasBaixadas * 100 / r.totalParadas : 0"></span></span>
+              </span>
+              <span class="icone seta">chevron_right</span>
+            </a></li>
+          }
+        </ul>
+      } @else {
+        <div class="card texto-2 pequeno">Nenhuma rota em andamento neste momento.</div>
+      }
+    </section>
+  }
+
+  @if (atalhos().length) {
+    <section>
+      <h2 class="secao-titulo">Atalhos</h2>
+      <div class="grade md-3 lg-4">
+        @for (a of atalhos(); track a.link) {
+          <a class="card atalho" [routerLink]="a.link">
+            <span class="icone">{{ a.icone }}</span>
+            <span class="cresce">
+              <span class="item-titulo" style="display:block">{{ a.titulo }}</span>
+              <span class="item-sub">{{ a.texto }}</span>
+            </span>
+            <span class="icone texto-3 so-celular">chevron_right</span>
+          </a>
+        }
+      </div>
+    </section>
+  }
+</div>

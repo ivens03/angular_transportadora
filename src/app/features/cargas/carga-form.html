@@ -1,0 +1,133 @@
+<div class="conteudo" style="max-width:960px">
+  <a class="voltar" routerLink="/painel/cargas"><span class="icone">arrow_back</span> Cargas</a>
+  <div class="cabecalho-pagina">
+    <div>
+      @if (carga(); as c) {
+        <div class="linha"><h1>{{ c.codigo }}</h1><app-status tipo="carga" [valor]="c.status" [comIcone]="true" /></div>
+        <p>Cadastrada por {{ c.cadastradaPor }} em {{ c.criadaEm | date }} @if (c.tentativasEntrega) { · {{ c.tentativasEntrega }} tentativa(s) de entrega }</p>
+      } @else {
+        <h1>{{ editando() ? 'Carga' : 'Nova carga' }}</h1>
+        <p>O que vai sair, para quem e onde entregar.</p>
+      }
+    </div>
+  </div>
+
+  @if (bloqueada()) {
+    <div class="aviso alerta" style="margin-bottom:16px"><span class="icone">lock</span>Só dá para alterar a carga enquanto ela aguarda rota. Mudanças de status agora vêm da rota.</div>
+  }
+
+  <form [formGroup]="form" (ngSubmit)="salvar()" class="pilha-g" novalidate>
+    <section class="card">
+      <h2 class="card-titulo">Conteúdo</h2>
+      <div class="form-grade">
+        <div class="campo inteiro">
+          <label for="cf-desc">Descrição</label>
+          <input id="cf-desc" class="entrada" formControlName="descricao" placeholder="Ex.: Caixa de eletrônicos" maxlength="200">
+          @if (invalido('descricao')) { <span class="erro">{{ erroServidor('descricao') ?? 'Descreva a carga.' }}</span> }
+        </div>
+        <div class="campo">
+          <label for="cf-peso">Peso (kg)</label>
+          <input id="cf-peso" class="entrada" type="number" inputmode="decimal" step="0.01" min="0.01" formControlName="pesoKg">
+          @if (invalido('pesoKg')) { <span class="erro">{{ erroServidor('pesoKg') ?? 'Informe o peso.' }}</span> }
+        </div>
+        <div class="campo">
+          <label for="cf-vol">Volume (m³)</label>
+          <input id="cf-vol" class="entrada" type="number" inputmode="decimal" step="0.001" min="0.001" formControlName="volumeM3">
+          <span class="dica">Ex.: caixa 40×40×50 cm = 0,08 m³</span>
+          @if (invalido('volumeM3')) { <span class="erro">{{ erroServidor('volumeM3') ?? 'Informe o volume.' }}</span> }
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2 class="card-titulo">Destinatário</h2>
+      <div class="form-grade">
+        <div class="campo">
+          <label for="cf-nome">Nome</label>
+          <input id="cf-nome" class="entrada" formControlName="destinatarioNome" autocomplete="off">
+          @if (invalido('destinatarioNome')) { <span class="erro">{{ erroServidor('destinatarioNome') ?? 'Informe quem recebe.' }}</span> }
+        </div>
+        <div class="campo">
+          <label for="cf-tel">Telefone <span class="texto-3">(opcional)</span></label>
+          <input id="cf-tel" class="entrada" type="tel" inputmode="tel" formControlName="destinatarioTelefone" placeholder="(85) 99999-0000">
+          @if (invalido('destinatarioTelefone')) { <span class="erro">{{ erroServidor('destinatarioTelefone') ?? 'Telefone com DDD (10 a 13 dígitos).' }}</span> }
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2 class="card-titulo">Endereço de entrega</h2>
+      <div class="form-grade">
+        <div class="campo">
+          <label for="cf-cep">CEP</label>
+          <div class="linha">
+            <input id="cf-cep" class="entrada" inputmode="numeric" formControlName="cep" placeholder="60150-160" maxlength="9">
+            <button class="btn btn-secundario" type="button" (click)="buscarCep()" [disabled]="buscandoCep() || form.disabled">
+              <span class="icone" [class.girando]="buscandoCep()">{{ buscandoCep() ? 'progress_activity' : 'search' }}</span>
+            </button>
+          </div>
+          <span class="dica">Preenche rua, bairro e cidade.</span>
+        </div>
+        <div class="campo">
+          <label for="cf-endereco">Endereço e número</label>
+          <input id="cf-endereco" class="entrada" formControlName="endereco" placeholder="Av. Santos Dumont, 1500">
+          @if (invalido('endereco')) { <span class="erro">{{ erroServidor('endereco') ?? 'Informe o endereço.' }}</span> }
+        </div>
+        <div class="campo">
+          <label for="cf-bairro">Bairro</label>
+          <input id="cf-bairro" class="entrada" formControlName="bairro">
+          @if (invalido('bairro')) { <span class="erro">Informe o bairro.</span> }
+        </div>
+        <div class="grade-2" style="grid-template-columns: 1fr 88px">
+          <div class="campo">
+            <label for="cf-cidade">Cidade</label>
+            <input id="cf-cidade" class="entrada" formControlName="cidade">
+          </div>
+          <div class="campo">
+            <label for="cf-uf">UF</label>
+            <input id="cf-uf" class="entrada" formControlName="uf" maxlength="2" style="text-transform:uppercase">
+          </div>
+        </div>
+      </div>
+
+      <hr>
+      <div class="linha-entre quebra" style="margin-bottom:10px">
+        <div>
+          <div class="forte">Local no mapa</div>
+          <div class="pequeno texto-2">
+            @if (latitude() !== null) { {{ latitude() }}, {{ longitude() }} } @else { Usado para calcular a melhor ordem da rota. }
+          </div>
+        </div>
+        <button class="btn btn-secundario btn-pequeno" type="button" (click)="localizar()" [disabled]="localizando() || form.disabled">
+          <span class="icone" [class.girando]="localizando()">{{ localizando() ? 'progress_activity' : 'travel_explore' }}</span> Localizar pelo endereço
+        </button>
+      </div>
+      <app-mapa-ponto [(latitude)]="latitude" [(longitude)]="longitude" [somenteLeitura]="bloqueada()" />
+    </section>
+
+    @if (erro()) { <div class="aviso erro"><span class="icone">error</span>{{ erro() }}</div> }
+
+    @if (!bloqueada()) {
+      <div class="barra-acao">
+        @if (carga()) {
+          <button class="btn btn-perigo" type="button" (click)="confirmarCancelamento.set(true)">Cancelar carga</button>
+        }
+        <button class="btn btn-primario" type="submit" [disabled]="salvando()">
+          @if (salvando()) { <span class="icone girando">progress_activity</span> }
+          {{ carga() ? 'Salvar alterações' : 'Cadastrar carga' }}
+        </button>
+      </div>
+    }
+  </form>
+
+  @if (confirmarCancelamento()) {
+    <div class="card" style="margin-top:16px; border-left:4px solid var(--rc-vermelho)">
+      <p class="forte">Cancelar a carga {{ carga()?.codigo }}?</p>
+      <p class="pequeno texto-2" style="margin:4px 0 12px">Ela sai da fila de roteirização. Não dá para desfazer.</p>
+      <div class="linha">
+        <button class="btn btn-perigo btn-pequeno" (click)="cancelarCarga()">Sim, cancelar</button>
+        <button class="btn btn-texto btn-pequeno" (click)="confirmarCancelamento.set(false)">Voltar</button>
+      </div>
+    </div>
+  }
+</div>

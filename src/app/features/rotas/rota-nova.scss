@@ -1,0 +1,27 @@
+.passos { display: flex; gap: 6px; list-style: none; margin: 0 0 16px; padding: 0; overflow-x: auto; }
+.passos li { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--rc-texto-3); white-space: nowrap; }
+.passos li + li::before { content: ''; width: 16px; height: 1px; background: var(--rc-borda); margin-right: 2px; }
+.passos li span { width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; background: var(--rc-cinza-suave); font-weight: 700; font-size: 12px; }
+.passos li.ativo { color: var(--rc-texto); font-weight: 700; }
+.passos li.ativo span { background: var(--rc-azul); color: #fff; }
+.passos li.feito span { background: var(--rc-verde); color: #fff; }
+.topo-lista { display: flex; flex-direction: column; gap: 6px; padding: 12px 16px; border-bottom: 1px solid var(--rc-borda); }
+.topo-lista .btn { align-self: flex-start; }
+label.item { cursor: pointer; }
+label.item.marcado { background: var(--rc-azul-suave); }
+.check { width: 22px; height: 22px; accent-color: var(--rc-azul); flex-shrink: 0; }
+.opcoes { display: flex; flex-direction: column; gap: 8px; }
+.opcao { display: flex; align-items: flex-start; gap: 12px; padding: 12px; border: 1px solid var(--rc-borda); border-radius: var(--rc-raio); cursor: pointer; }
+.opcao input { width: 20px; height: 20px; margin-top: 2px; accent-color: var(--rc-azul); }
+.opcao > .icone { color: var(--rc-texto-2); }
+.opcao.marcada { border-color: var(--rc-azul); background: var(--rc-azul-suave); }
+.opcao.nao-cabe { opacity: .6; cursor: not-allowed; }
+.revisao { display: grid; grid-template-columns: auto 1fr; gap: 14px 12px; align-items: center; }
+.revisao > .icone { color: var(--rc-azul); }
+.mapa-card { height: 260px; margin-top: 12px; }
+.resumo-barra { align-self: center; font-size: 14px; }
+@media (min-width: 1024px) {
+  .lateral { position: sticky; top: 140px; }
+  .mapa-card { height: calc(100dvh - 260px); min-height: 360px; margin-top: 0; }
+}
+@media (min-width: 768px) { .topo-lista { flex-direction: row; align-items: center; } .topo-lista .btn { align-self: auto; } }

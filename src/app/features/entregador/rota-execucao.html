@@ -1,0 +1,153 @@
+@if (erro()) {
+  <div class="conteudo">
+    <a class="voltar" routerLink="/app/rotas"><span class="icone">arrow_back</span> Minhas rotas</a>
+    <div class="aviso erro"><span class="icone">error</span><span class="cresce">{{ erro() }}</span>
+      <button class="btn btn-texto btn-pequeno" (click)="carregar()">Tentar de novo</button></div>
+  </div>
+} @else if (rota(); as r) {
+  <div class="mapa-area">
+    <app-mapa-rota [origem]="origem()" [paradas]="r.paradas" [trajeto]="r.trajeto" [percurso]="percurso()"
+                   [atual]="atual()" [proxima]="r.proximaParada" [seguir]="rastreador.simulando()" />
+    <a class="voltar-mapa" routerLink="/app/rotas" aria-label="Voltar"><span class="icone">arrow_back</span></a>
+  </div>
+
+  <div class="painel">
+    <div class="pegador" aria-hidden="true"></div>
+
+    <div class="linha-entre">
+      <div>
+        <div class="linha"><h1>{{ r.codigo }}</h1><app-status tipo="rota" [valor]="r.status" /></div>
+        <p class="pequeno texto-2">{{ r.veiculoPlaca }} · {{ r.veiculoModelo }}</p>
+      </div>
+      <div class="kpi" style="text-align:right">
+        <span class="valor">{{ r.progresso.entregues + r.progresso.naoEntregues }}<small>/ {{ r.progresso.totalParadas }}</small></span>
+        <span class="rotulo">paradas</span>
+      </div>
+    </div>
+    <div class="barra-progresso"><span [style.width.%]="r.progresso.percentual"></span></div>
+
+    @switch (r.status) {
+      @case ('PLANEJADA') {
+        <div class="resumo">
+          <div><span class="icone">straighten</span><b>{{ r.distanciaEstimadaKm | number: '1.0-1' }} km</b><small>estimados</small></div>
+          <div><span class="icone">schedule</span><b>~{{ r.duracaoEstimadaMin }} min</b><small>com as paradas</small></div>
+          <div><span class="icone">weight</span><b>{{ r.pesoTotalKg | number: '1.0-1' }} kg</b><small>de carga</small></div>
+        </div>
+        <div class="aviso"><span class="icone">my_location</span>Ao iniciar, o app pede sua localização para o Suporte acompanhar a entrega.</div>
+        <button class="btn btn-sucesso btn-bloco btn-grande" (click)="iniciar()" [disabled]="ocupado()">
+          @if (ocupado() === 'iniciar') { <span class="icone girando">progress_activity</span> } @else { <span class="icone">play_arrow</span> }
+          Iniciar rota
+        </button>
+      }
+
+      @case ('EM_ANDAMENTO') {
+        @if (proxima(); as p) {
+          <section class="proxima">
+            <div class="linha-entre">
+              <span class="rotulo-proxima"><span class="numero">{{ p.ordem }}</span> Próxima entrega</span>
+              @if (r.minutosAteProximaParada !== null) {
+                <span class="pequeno texto-2 nowrap">~{{ r.minutosAteProximaParada }} min · {{ r.distanciaAteProximaParadaKm | number: '1.0-1' }} km</span>
+              }
+            </div>
+            <h2>{{ p.destinatarioNome }}</h2>
+            <p class="endereco">{{ p.endereco }} — {{ p.bairro }}, {{ p.cidade }}</p>
+            <p class="pequeno texto-2">{{ p.descricao }} · {{ p.pesoKg | number: '1.0-2' }} kg · {{ p.cargaCodigo }}</p>
+
+            <div class="atalhos">
+              <a class="btn btn-secundario" [href]="navegar(p)" target="_blank" rel="noopener"><span class="icone">navigation</span> Navegar</a>
+              @if (p.destinatarioTelefone) {
+                <a class="btn btn-secundario" [href]="'tel:' + p.destinatarioTelefone"><span class="icone">call</span> Ligar</a>
+              }
+            </div>
+
+            <button class="btn btn-sucesso btn-bloco btn-grande" (click)="entregue(p)" [disabled]="ocupado()">
+              @if (ocupado() === 'ENTREGUE') { <span class="icone girando">progress_activity</span> } @else { <span class="icone">check_circle</span> }
+              Entregue
+            </button>
+            <button class="btn btn-perigo btn-bloco" (click)="abrirFalha()" [disabled]="ocupado()">
+              <span class="icone">cancel</span> Não consegui entregar
+            </button>
+          </section>
+        }
+
+        <div class="gps pequeno">
+          @if (rastreador.erro(); as e) {
+            <span class="vermelho"><span class="icone">location_disabled</span> {{ e }}</span>
+          } @else {
+            <span class="verde"><span class="icone">my_location</span> Localização ligada</span>
+          }
+          <span class="texto-2">
+            @if (rastreador.pendentes()) { {{ rastreador.pendentes() }} ponto(s) aguardando envio · }
+            @if (rastreador.ultimoEnvio(); as u) { enviado às {{ u | date: 'HH:mm:ss' }} }
+          </span>
+        </div>
+        @if (simulador) {
+          <button class="btn btn-texto btn-pequeno" (click)="simular()">
+            <span class="icone">{{ rastreador.simulando() ? 'stop_circle' : 'smart_toy' }}</span>
+            {{ rastreador.simulando() ? 'Parar simulação' : 'Simular deslocamento (demo)' }}
+          </button>
+        }
+      }
+
+      @case ('CONCLUIDA') {
+        <div class="fim">
+          <span class="icone cheio verde">verified</span>
+          <h2>Rota concluída!</h2>
+          <p class="texto-2">{{ r.progresso.entregues }} entregue(s) · {{ r.progresso.naoEntregues }} não entregue(s)
+            @if (r.concluidaEm) { · às {{ r.concluidaEm | date: 'HH:mm' }} }</p>
+          @if (r.progresso.naoEntregues) {
+            <p class="pequeno texto-2">As cargas não entregues voltam para o Suporte reprogramar.</p>
+          }
+          <a class="btn btn-primario" routerLink="/app/rotas">Voltar para minhas rotas</a>
+        </div>
+      }
+
+      @case ('CANCELADA') {
+        <div class="aviso alerta"><span class="icone">block</span>Esta rota foi cancelada pelo Suporte.</div>
+      }
+    }
+
+    <section>
+      <button class="linha-entre titulo-lista" (click)="verTodas.set(!verTodas())" [attr.aria-expanded]="verTodas()">
+        <span class="secao-titulo" style="margin:0">Todas as paradas ({{ r.paradas.length }})</span>
+        <span class="icone">{{ verTodas() ? 'expand_less' : 'expand_more' }}</span>
+      </button>
+      @if (verTodas() || r.status !== 'EM_ANDAMENTO') {
+        <ol class="paradas">
+          @for (p of r.paradas; track p.ordem) {
+            <li [class.atual]="p.ordem === r.proximaParada">
+              <span class="bolinha {{ p.status.toLowerCase() }}">{{ p.ordem }}</span>
+              <div class="cresce">
+                <div class="forte">{{ p.destinatarioNome }}</div>
+                <div class="pequeno texto-2">{{ p.endereco }} — {{ p.bairro }}</div>
+                @if (p.motivo) { <div class="pequeno vermelho">{{ p.motivo }}</div> }
+              </div>
+              <app-status tipo="parada" [valor]="p.status" />
+            </li>
+          }
+        </ol>
+      }
+    </section>
+  </div>
+
+  <app-folha [(aberta)]="folhaFalha" titulo="O que aconteceu?">
+    <div class="pilha">
+      @for (m of motivos; track m) {
+        <label class="opcao" [class.marcada]="motivoEscolhido === m">
+          <input type="radio" name="motivo" [value]="m" [(ngModel)]="motivoEscolhido"> {{ m }}
+        </label>
+      }
+      @if (motivoEscolhido === 'Outro') {
+        <textarea class="entrada" [(ngModel)]="motivoTexto" maxlength="300" placeholder="Descreva rapidamente" aria-label="Motivo"></textarea>
+      }
+      <button class="btn btn-primario btn-bloco" (click)="confirmarFalha()"
+              [disabled]="!motivoEscolhido || (motivoEscolhido === 'Outro' && !motivoTexto.trim())">Registrar não entrega</button>
+    </div>
+  </app-folha>
+} @else {
+  <div class="mapa-area esqueleto" style="border-radius:0"></div>
+  <div class="conteudo pilha">
+    <div class="esqueleto" style="height:24px;width:40%"></div>
+    <div class="esqueleto" style="height:120px"></div>
+  </div>
+}

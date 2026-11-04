@@ -1,0 +1,125 @@
+<div class="conteudo">
+  <a class="voltar" routerLink="/painel/rotas"><span class="icone">arrow_back</span> Rotas</a>
+  <div class="cabecalho-pagina"><div><h1>Montar rota</h1><p>A ordem das paradas é calculada automaticamente.</p></div></div>
+
+  <ol class="passos" aria-label="Etapas">
+    <li [class.ativo]="passo() === 1" [class.feito]="passo() > 1"><span>1</span> Cargas</li>
+    <li [class.ativo]="passo() === 2" [class.feito]="passo() > 2"><span>2</span> Veículo e entregador</li>
+    <li [class.ativo]="passo() === 3"><span>3</span> Revisar</li>
+  </ol>
+
+  @if (erro()) { <div class="aviso erro" style="margin-bottom:12px"><span class="icone">error</span>{{ erro() }}</div> }
+
+  <div class="divisao larga">
+    <div class="pilha">
+      @switch (passo()) {
+        @case (1) {
+          <div class="card sem-padding">
+            <div class="topo-lista">
+              <input class="entrada" placeholder="Filtrar por bairro ou destinatário" [ngModel]="filtroBairro()" (ngModelChange)="filtroBairro.set($event)" aria-label="Filtrar">
+              <button class="btn btn-texto btn-pequeno" type="button" (click)="todasVisiveis()">Marcar/desmarcar visíveis</button>
+            </div>
+            @if (cargas() === null) {
+              <div class="esqueleto" style="height:180px;margin:16px"></div>
+            } @else if (!cargas()!.length) {
+              <app-vazio icone="inventory_2" titulo="Nenhuma carga aguardando rota" texto="Cadastre cargas para poder montar uma rota.">
+                <a class="btn btn-primario" routerLink="/painel/cargas/nova">Nova carga</a>
+              </app-vazio>
+            } @else {
+              <ul class="lista">
+                @for (c of cargasVisiveis(); track c.id) {
+                  <li>
+                    <label class="item" [class.marcado]="selecionadas().has(c.id)">
+                      <input type="checkbox" class="check" [checked]="selecionadas().has(c.id)" (change)="alternar(c.id)">
+                      <span class="cresce">
+                        <span class="item-titulo" style="display:block">{{ c.destinatarioNome }}</span>
+                        <span class="item-sub" style="display:block">{{ c.endereco }} — {{ c.bairro }}</span>
+                        <span class="mini texto-3">{{ c.codigo }} · {{ c.descricao }} @if (c.tentativasEntrega) { · <b class="laranja">{{ c.tentativasEntrega }}ª tentativa</b> }</span>
+                      </span>
+                      <span class="nowrap pequeno forte">{{ c.pesoKg | number: '1.0-1' }} kg</span>
+                    </label>
+                  </li>
+                }
+              </ul>
+            }
+          </div>
+        }
+
+        @case (2) {
+          <section class="card">
+            <h2 class="card-titulo">Veículo</h2>
+            @if (veiculos() === null) { <div class="esqueleto" style="height:120px"></div> }
+            @else if (!veiculos()!.length) { <p class="texto-2">Nenhum veículo ATIVO. <a routerLink="/painel/veiculos/novo">Cadastrar</a></p> }
+            <div class="opcoes">
+              @for (v of veiculos(); track v.id) {
+                <label class="opcao" [class.marcada]="veiculoId() === v.id" [class.nao-cabe]="!cabe(v)">
+                  <input type="radio" name="veiculo" [checked]="veiculoId() === v.id" (change)="veiculoId.set(v.id)" [disabled]="!cabe(v)">
+                  <span class="icone">{{ tipos[v.tipo].icone }}</span>
+                  <span class="cresce pilha" style="gap:4px">
+                    <span><b>{{ v.placa }}</b> · {{ v.modelo }}</span>
+                    <span class="mini texto-2">Peso {{ peso() | number: '1.0-1' }} / {{ v.capacidadeCargaKg | number: '1.0-0' }} kg</span>
+                    <span class="barra-progresso" [class.estouro]="peso() > v.capacidadeCargaKg" [class.alerta]="uso(v.capacidadeCargaKg, peso()) > 85"><span [style.width.%]="uso(v.capacidadeCargaKg, peso())"></span></span>
+                    <span class="mini texto-2">Volume {{ volume() | number: '1.0-2' }} / {{ v.capacidadeVolumeM3 | number: '1.0-2' }} m³</span>
+                    <span class="barra-progresso" [class.estouro]="volume() > v.capacidadeVolumeM3" [class.alerta]="uso(v.capacidadeVolumeM3, volume()) > 85"><span [style.width.%]="uso(v.capacidadeVolumeM3, volume())"></span></span>
+                    @if (!cabe(v)) { <span class="mini vermelho forte">Não comporta a carga escolhida</span> }
+                  </span>
+                </label>
+              }
+            </div>
+          </section>
+
+          <section class="card">
+            <h2 class="card-titulo">Entregador</h2>
+            <input class="entrada" placeholder="Buscar por nome ou matrícula" [ngModel]="filtroEntregador()" (ngModelChange)="filtroEntregador.set($event)" aria-label="Buscar entregador" style="margin-bottom:10px">
+            @if (entregadores() === null) { <div class="esqueleto" style="height:80px"></div> }
+            @else if (!entregadores()!.length) { <p class="texto-2">Nenhum entregador ativo.</p> }
+            <div class="opcoes">
+              @for (e of entregadoresVisiveis(); track e.matricula) {
+                <label class="opcao" [class.marcada]="entregador() === e.matricula">
+                  <input type="radio" name="entregador" [checked]="entregador() === e.matricula" (change)="entregador.set(e.matricula)">
+                  <span class="icone">two_wheeler</span>
+                  <span class="cresce"><b>{{ e.nome }}</b><br><span class="mini texto-2">{{ e.matricula }}</span></span>
+                </label>
+              }
+            </div>
+          </section>
+
+          <label class="card caixa-check">
+            <input type="checkbox" [checked]="retornar()" (change)="retornar.set(!retornar())">
+            <span><b>Voltar ao CD no fim</b><br><span class="pequeno texto-2">Inclui o retorno na distância e no tempo estimados.</span></span>
+          </label>
+        }
+
+        @case (3) {
+          <section class="card pilha">
+            <h2 class="card-titulo" style="margin:0">Revise antes de gerar</h2>
+            <div class="revisao">
+              <span class="icone">inventory_2</span><div><b>{{ escolhidas().length }} carga(s)</b><br><span class="pequeno texto-2">{{ peso() | number: '1.0-1' }} kg · {{ volume() | number: '1.0-2' }} m³</span></div>
+              <span class="icone">{{ tipos[veiculo()?.tipo ?? 'CARRO'].icone }}</span><div><b>{{ veiculo()?.placa }}</b><br><span class="pequeno texto-2">{{ veiculo()?.marca }} {{ veiculo()?.modelo }}</span></div>
+              <span class="icone">two_wheeler</span><div><b>{{ entregadorEscolhido()?.nome }}</b><br><span class="pequeno texto-2">{{ entregador() }}</span></div>
+              <span class="icone">{{ retornar() ? 'u_turn_left' : 'trending_flat' }}</span><div><b>{{ retornar() ? 'Volta ao CD' : 'Termina na última entrega' }}</b></div>
+            </div>
+            <div class="aviso"><span class="icone">auto_awesome</span>Ao gerar, a API ordena as paradas pelo menor percurso e a rota fica disponível no app do entregador.</div>
+          </section>
+        }
+      }
+    </div>
+
+    <aside class="lateral">
+      <div class="card sem-padding mapa-card">
+        <app-mapa-rota [paradas]="pinos()" [origem]="{ latitude: -3.7319, longitude: -38.5267 }" />
+      </div>
+    </aside>
+  </div>
+
+  <div class="barra-acao">
+    <div class="cresce resumo-barra">
+      <b>{{ selecionadas().size }}</b> carga(s) · {{ peso() | number: '1.0-1' }} kg
+    </div>
+    @if (passo() > 1) { <button class="btn btn-texto" type="button" (click)="voltar()">Voltar</button> }
+    <button class="btn btn-primario" type="button" (click)="avancar()" [disabled]="!podeAvancar() || gerando()">
+      @if (gerando()) { <span class="icone girando">progress_activity</span> }
+      {{ passo() < 3 ? 'Continuar' : 'Gerar rota' }}
+    </button>
+  </div>
+</div>

@@ -1,0 +1,80 @@
+<div class="conteudo">
+  <div class="cabecalho-pagina">
+    <div><h1>Consumo da frota</h1>
+      <p>@if (dados(); as d) { De {{ d.inicio | date: 'dd/MM/yyyy' }} a {{ d.fim | date: 'dd/MM/yyyy' }} } @else { Combustível, km/l e custo por km }</p></div>
+  </div>
+
+  <div class="periodo card">
+    <div class="chips">
+      @for (d of atalhos; track d) {
+        <button class="chip" [class.ativo]="dias() === d" (click)="periodo(d)">{{ d }} dias</button>
+      }
+    </div>
+    <form class="datas" (ngSubmit)="personalizado()">
+      <label class="campo"><span class="mini texto-2">De</span><input class="entrada" type="date" name="inicio" [(ngModel)]="inicio" [max]="fim"></label>
+      <label class="campo"><span class="mini texto-2">Até</span><input class="entrada" type="date" name="fim" [(ngModel)]="fim" [min]="inicio"></label>
+      <button class="btn btn-secundario" type="submit">Aplicar</button>
+    </form>
+  </div>
+
+  @if (erro()) { <div class="aviso erro"><span class="icone">error</span>{{ erro() }}</div> }
+
+  @if (dados(); as d) {
+    <section class="grade-2 kpis" [class.apagado]="carregando()">
+      <div class="card kpi"><span class="rotulo">Gasto com combustível</span><span class="valor">{{ (d.gastoTotal ?? 0) | currency }}</span></div>
+      <div class="card kpi"><span class="rotulo">Custo por km</span><span class="valor">{{ d.custoPorKm !== null ? (d.custoPorKm | currency) : '–' }}</span></div>
+      <div class="card kpi"><span class="rotulo">Média da frota</span><span class="valor">{{ d.consumoMedioKmPorLitro ?? '–' }}<small>km/l</small></span></div>
+      <div class="card kpi"><span class="rotulo">Rodados</span><span class="valor">{{ d.kmRodados | number }}<small>km</small></span>
+        <span class="mini texto-2">{{ d.litrosAbastecidos | number: '1.0-1' }} L · {{ d.veiculosAbastecidos }} veículo(s)</span></div>
+    </section>
+
+    @if (d.veiculosComConsumoAcimaDoEsperado) {
+      <div class="aviso alerta" style="margin:16px 0"><span class="icone">warning</span>
+        <span><b>{{ d.veiculosComConsumoAcimaDoEsperado }} veículo(s)</b> com consumo acima do esperado (km/l pior que a referência além da tolerância). Vale checar manutenção, calibragem e trajeto.</span></div>
+    }
+
+    <h2 class="secao-titulo" style="margin-top:20px">Por veículo</h2>
+    @if (!veiculos().length) {
+      <div class="card"><app-vazio icone="local_gas_station" titulo="Sem abastecimentos no período" texto="Registre abastecimentos na ficha de cada veículo." /></div>
+    } @else {
+      <!-- celular: cartões -->
+      <div class="pilha so-celular">
+        @for (m of veiculos(); track m.veiculoId) {
+          <a class="card veiculo" [routerLink]="['/painel/veiculos', m.veiculoId]" [class.alerta]="m.situacao === 'CONSUMO_ACIMA_DO_ESPERADO'">
+            <div class="linha-entre"><b>{{ m.placa }}</b><app-status tipo="consumo" [valor]="m.situacao" /></div>
+            <div class="pequeno texto-2">{{ m.modelo }} · {{ tipos[m.tipo].texto }}</div>
+            <div class="trilha"><span class="real" [style.width.%]="barra(m)" [class.ruim]="m.situacao === 'CONSUMO_ACIMA_DO_ESPERADO'"></span><span class="ref"></span></div>
+            <div class="linha-entre pequeno">
+              <span><b>{{ m.consumoMedioKmPorLitro ?? '–' }}</b> km/l <span class="texto-3">(ref. {{ m.consumoReferenciaKmPorLitro ?? '–' }})</span></span>
+              <span>{{ m.custoPorKm !== null ? (m.custoPorKm | currency) + '/km' : '' }}</span>
+            </div>
+          </a>
+        }
+      </div>
+
+      <!-- desktop: tabela -->
+      <div class="card sem-padding so-desktop" style="overflow-x:auto">
+        <table class="tabela">
+          <thead><tr><th>Veículo</th><th>Situação</th><th class="num">km</th><th class="num">Litros</th><th class="num">km/l</th><th class="num">Ref.</th><th class="num">Desvio</th><th class="num">R$/km</th><th class="num">Gasto</th></tr></thead>
+          <tbody>
+            @for (m of veiculos(); track m.veiculoId) {
+              <tr [class.linha-alerta]="m.situacao === 'CONSUMO_ACIMA_DO_ESPERADO'">
+                <td><a [routerLink]="['/painel/veiculos', m.veiculoId]"><b>{{ m.placa }}</b></a><br><span class="mini texto-2">{{ m.modelo }}</span></td>
+                <td><app-status tipo="consumo" [valor]="m.situacao" /></td>
+                <td class="num">{{ m.kmRodados | number }}</td>
+                <td class="num">{{ m.litrosAbastecidos | number: '1.0-1' }}</td>
+                <td class="num forte">{{ m.consumoMedioKmPorLitro ?? '–' }}</td>
+                <td class="num texto-2">{{ m.consumoReferenciaKmPorLitro ?? '–' }}</td>
+                <td class="num" [class.vermelho]="m.situacao === 'CONSUMO_ACIMA_DO_ESPERADO'">{{ m.desvioPercentual !== null ? (m.desvioPercentual > 0 ? '+' : '') + m.desvioPercentual + '%' : '–' }}</td>
+                <td class="num">{{ m.custoPorKm !== null ? (m.custoPorKm | currency) : '–' }}</td>
+                <td class="num">{{ m.gastoTotal !== null ? (m.gastoTotal | currency) : '–' }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  } @else if (carregando()) {
+    <div class="grade-2 kpis">@for (i of [1,2,3,4]; track i) { <div class="card esqueleto" style="height:84px"></div> }</div>
+  }
+</div>

@@ -1,0 +1,16 @@
+.mapa-card { height: 55dvh; min-height: 300px; }
+.ao-vivo { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; color: var(--rc-vermelho); text-transform: uppercase; }
+.ao-vivo .ponto { width: 8px; height: 8px; border-radius: 50%; background: var(--rc-vermelho); animation: pulsa 1.4s ease-in-out infinite; }
+@keyframes pulsa { 50% { opacity: .25; } }
+.paradas { list-style: none; margin: 0; padding: 0; }
+.paradas li { display: flex; gap: 12px; align-items: center; padding: 12px 14px; }
+.paradas li + li { border-top: 1px solid var(--rc-borda); }
+.paradas li.atual { background: var(--rc-laranja-suave); }
+.bolinha { width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; font-size: 13px; font-weight: 800; color: #fff; background: #9e9e9e; flex-shrink: 0; }
+.bolinha.entregue { background: var(--rc-verde); }
+.bolinha.nao_entregue { background: var(--rc-vermelho); }
+.direita { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; }
+.linha-tempo { display: flex; flex-direction: column; gap: 4px; }
+@media (min-width: 1024px) {
+  .mapa-card { position: sticky; top: 140px; height: calc(100dvh - 180px); }
+}
