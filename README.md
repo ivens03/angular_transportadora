@@ -27,6 +27,21 @@ O GPS do navegador só funciona em HTTPS (ou localhost) — por isso o `--ssl`; 
 Para entrar, use as contas fixas de teste do perfil dev (dados no `.env` da API): o entregador entra pela aba
 **Sou entregador** (matrícula + PIN) e os funcionários pela aba **Sou da empresa** (e-mail + senha).
 
+## Deploy (Dokploy, a cada push na `main`)
+
+No ar em **https://rotacerta.137-131-162-187.sslip.io**, numa VPS com [Dokploy](https://dokploy.com). A cada push
+na `main`, o GitHub avisa o Dokploy (webhook), que clona o repositório e faz o `docker build` com o `Dockerfile`
+daqui:
+
+1. **build**: `node:24` roda `npm ci` + `ng build` (configuração production, API em `/transportadora`);
+2. **execução**: `nginx:alpine` serve o `dist/` com o [`nginx.conf`](nginx.conf). Rota do Angular que não é
+   arquivo (`/rotas/12`) volta para o `index.html`, os arquivos com hash ficam em cache por 1 ano e o
+   `index.html` nunca fica em cache (depois de um deploy, o navegador pega a versão nova).
+
+A API **não** passa por este Nginx: o Traefik do servidor manda `/transportadora/**` direto para o container da
+API e o resto para cá. Mesmo domínio, então não precisa de CORS. Detalhes no README do
+[`spring.transportadora`](../spring.transportadora).
+
 ## O que cada perfil vê
 
 | Perfil | Onde | Telas |
