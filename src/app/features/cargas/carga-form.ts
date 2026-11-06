@@ -214,9 +214,10 @@ export class CargaFormulario implements OnInit {
 
   protected escolherEntregador(matricula: string): void {
     this.entregadorMatricula.set(matricula);
-    // com rota planejada, o veículo é o da rota
+    // com rota planejada, o veículo é o da rota; trocando para outro entregador, solta o veículo que estava em uso
     const rota = this.rotaDoEntregador();
-    if (rota) this.veiculoId.set(rota.veiculoId);
+    const atual = this.veiculoId();
+    this.veiculoId.set(rota ? rota.veiculoId : atual !== null && !this.rotaDe('veiculoId', atual) ? atual : null);
   }
 
   /**
