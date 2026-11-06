@@ -12,4 +12,5 @@ export const MENU_PAINEL: ItemMenu[] = [
   { rotulo: 'Consumo', icone: 'local_gas_station', link: '/painel/consumo', permissao: Permissao.CONSUMO_VER_METRICAS },
   { rotulo: 'Usuários', icone: 'group', link: '/painel/usuarios', permissao: Permissao.USUARIO_GERENCIAR },
   { rotulo: 'Monitoramento', icone: 'monitor_heart', link: '/painel/monitoramento', permissao: Permissao.MENSAGERIA_MONITORAR },
+  { rotulo: 'Como funciona', icone: 'account_tree', link: '/painel/como-funciona', permissao: Permissao.MENSAGERIA_MONITORAR },
 ];

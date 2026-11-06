@@ -52,7 +52,7 @@ API e o resto para cá. Mesmo domínio, então não precisa de CORS. Detalhes no
 | Suporte | `/painel` | **empresas** clientes (cadastro com CNPJ, inclusive o alfanumérico, e endereço de entrega), **nova entrega** para uma empresa já escolhendo entregador e veículo, montar rota, acompanhar rota ao vivo, frota |
 | Administrativo | `/painel` | usuários (cadastro + código de ativação, bloqueio, novo código), frota |
 | Financeiro | `/painel` | consumo da frota (km/l, R$/km, alertas), frota e abastecimentos |
-| Desenvolvimento | `/painel` | monitoramento (saúde/latência da API, Swagger) |
+| Desenvolvimento | `/painel` | monitoramento (saúde/latência da API, Swagger) e **Como funciona** (`/painel/como-funciona`): o caminho do dado do app à VPS — escolha um fluxo e as caixas por onde ele passa acendem; toque numa caixa para ver frameworks e versões; o servidor mostra Java, Spring Boot, Hibernate, Postgres e a última migração medidos na hora. Tudo vem de `GET /arquitetura`, o mesmo que o app desenha |
 
 O menu e as rotas usam **as mesmas permissões do token** que o `SecurityConfig` da API exige — quem não tem a
 permissão nem vê o item (e, se digitar a URL, volta para o início).
@@ -100,7 +100,7 @@ src/app/
     rotulos.ts          textos/cores dos enums (status, tipos, perfis)
   shared/               componentes reutilizáveis (etiqueta de status, mapa, folha inferior, paginação, vazio…)
   layout/               casca do painel (cabeçalho, menu), do app (navegação inferior) e do portal do cliente
-  features/             uma pasta por área: acesso, entregador, cliente, inicio, cargas, rotas, veiculos, consumo, usuarios, conta, monitoramento
+  features/             uma pasta por área: acesso, entregador, cliente, inicio, cargas, rotas, veiculos, consumo, usuarios, conta, monitoramento, como-funciona, empresas
 src/styles.scss         design system (cores, botões, campos, cartões, listas) — mobile first
 src/environments/       URL da API e ajustes de GPS por ambiente
 ```

@@ -1,0 +1,137 @@
+<div class="conteudo pilha-g">
+  <div class="cabecalho-pagina">
+    <div>
+      <h1>Como funciona</h1>
+      <p>O caminho do dado, do celular e do navegador até a VPS, com os frameworks e as ferramentas de cada parte.</p>
+    </div>
+    <div class="acoes">
+      <a class="btn btn-secundario" routerLink="/painel/monitoramento"><span class="icone">monitor_heart</span> Monitoramento</a>
+      <button class="btn btn-secundario" type="button" (click)="carregar()"><span class="icone">refresh</span> Atualizar</button>
+    </div>
+  </div>
+
+  @if (erro()) {
+    <div class="aviso erro"><span class="icone">error</span>{{ erro() }}</div>
+  } @else if (!dados()) {
+    <div class="card esqueleto" style="height:240px"></div>
+  } @else {
+    @let d = dados()!;
+
+    <!-- ambiente medido agora: prova que a tela está falando com o servidor de verdade -->
+    <section class="card">
+      <h2 class="card-titulo">Servidor agora <span class="pequeno texto-3">medido às {{ d.ambiente.agora | date: 'HH:mm:ss' }}</span></h2>
+      <div class="ambiente">
+        <div><span class="rotulo">Perfil</span><span class="forte">{{ d.ambiente.perfil }}</span></div>
+        <div><span class="rotulo">Java</span><span class="forte">{{ d.ambiente.java }}</span></div>
+        <div><span class="rotulo">Spring Boot</span><span class="forte">{{ d.ambiente.springBoot }}</span></div>
+        <div><span class="rotulo">Hibernate</span><span class="forte">{{ d.ambiente.hibernate }}</span></div>
+        <div><span class="rotulo">Banco</span><span class="forte">{{ d.ambiente.banco }}</span></div>
+        <div><span class="rotulo">Última migração (Flyway)</span><span class="forte">{{ d.ambiente.migracao }}</span></div>
+        <div><span class="rotulo">Máquina</span><span class="forte">{{ d.ambiente.servidor }}</span></div>
+        <div><span class="rotulo">No ar há</span><span class="forte">{{ noAr() }}</span></div>
+      </div>
+    </section>
+
+    <!-- desenho: escolha o fluxo e as caixas por onde o dado passa acendem -->
+    <section class="card pilha">
+      <h2 class="card-titulo" style="margin:0">Caminho do dado</h2>
+      <div class="chips">
+        @for (f of d.fluxos; track f.id) {
+          @if (f.id !== 'deploy') {
+            <button type="button" class="chip" [class.ativo]="fluxoId() === f.id" (click)="escolherFluxo(f.id)">{{ f.titulo }}</button>
+          }
+        }
+        <button type="button" class="chip" [class.ativo]="fluxoId() === 'deploy'" (click)="escolherFluxo('deploy')">
+          <span class="icone">rocket_launch</span> Do commit ao ar
+        </button>
+      </div>
+
+      @if (fluxoId() !== 'deploy') {
+        <div class="diagrama">
+          @for (col of colunas(); track col.titulo; let ultima = $last) {
+            <div class="coluna">
+              <span class="titulo-coluna">{{ col.titulo }}</span>
+              @for (c of col.camadas; track c.id) {
+                <button type="button" class="caixa" [class.acesa]="acesas().has(c.id)" [class.apagada]="!acesas().has(c.id)"
+                        [class.aberta]="aberta() === c.id" (click)="abrir(c.id)">
+                  <span class="icone">{{ icone(c.id) }}</span>
+                  <span class="forte">{{ c.nome }}</span>
+                  <span class="pequeno texto-2">{{ c.onde }}</span>
+                </button>
+              }
+            </div>
+            @if (!ultima) { <span class="seta" aria-hidden="true"><span class="icone">arrow_forward</span></span> }
+          }
+        </div>
+      } @else {
+        <div class="diagrama entrega">
+          @for (c of entrega(); track c.id; let ultima = $last) {
+            <button type="button" class="caixa acesa" [class.aberta]="aberta() === c.id" (click)="abrir(c.id)">
+              <span class="icone">{{ icone(c.id) }}</span>
+              <span class="forte">{{ c.nome }}</span>
+              <span class="pequeno texto-2">{{ c.onde }}</span>
+            </button>
+            @if (!ultima) { <span class="seta" aria-hidden="true"><span class="icone">arrow_forward</span></span> }
+          }
+        </div>
+      }
+
+      @if (camadaAberta(); as c) {
+        <div class="detalhe">
+          <div class="linha-entre">
+            <span class="linha"><span class="icone azul">{{ icone(c.id) }}</span><span class="forte">{{ c.nome }}</span></span>
+            <button type="button" class="btn btn-texto btn-pequeno" (click)="abrir(c.id)">Fechar</button>
+          </div>
+          <p class="texto-2">{{ c.papel }}</p>
+          <ul class="tecnologias">
+            @for (t of c.tecnologias; track t.nome) {
+              <li>
+                <span class="linha"><span class="forte">{{ t.nome }}</span>@if (t.versao) { <span class="etiqueta mono">{{ t.versao }}</span> }</span>
+                <span class="texto-2">{{ t.papel }}</span>
+              </li>
+            }
+          </ul>
+        </div>
+      } @else {
+        <p class="pequeno texto-3"><span class="icone">touch_app</span> Toque numa caixa para ver os frameworks e as versões.</p>
+      }
+
+      @if (fluxo(); as f) {
+        <div class="pilha">
+          <p class="texto-2" style="margin:0">{{ f.resumo }}</p>
+          <ol class="passos">
+            @for (p of f.passos; track $index) {
+              <li [class.ativo]="passo() === p" (click)="alternarPasso(p)">
+                <span class="numero">{{ $index + 1 }}</span>
+                <span class="pilha" style="gap:4px">
+                  <span class="linha pequeno">
+                    <span class="etiqueta">{{ nome(p.de) }}</span><span class="icone texto-3">arrow_forward</span><span class="etiqueta">{{ nome(p.para) }}</span>
+                  </span>
+                  <span>{{ p.oque }}</span>
+                </span>
+              </li>
+            }
+          </ol>
+        </div>
+      }
+    </section>
+
+    <section class="card pilha">
+      <h2 class="card-titulo" style="margin:0">Ferramentas usadas no desenvolvimento</h2>
+      <div class="ferramentas">
+        @for (g of ferramentas(); track g.categoria) {
+          <div class="pilha" style="gap:6px">
+            <span class="secao-titulo">{{ g.categoria }}</span>
+            @for (f of g.itens; track f.nome) {
+              <div><span class="forte">{{ f.nome }}</span><span class="texto-2">{{ ' — ' + f.para }}</span></div>
+            }
+          </div>
+        }
+      </div>
+    </section>
+
+    <div class="aviso"><span class="icone">info</span>
+      O conteúdo vem de <code>GET /api/v1/arquitetura</code> (arquivo <code>arquitetura.json</code> na API). O app Android desenha a mesma resposta.
+    </div>
+  }
+</div>

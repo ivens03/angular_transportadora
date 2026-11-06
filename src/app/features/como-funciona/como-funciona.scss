@@ -1,0 +1,70 @@
+.ambiente {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px 20px;
+  > div { display: flex; flex-direction: column; gap: 2px; min-width: 0; overflow-wrap: anywhere; }
+  .rotulo { font-size: 12px; color: var(--rc-texto-2); }
+}
+
+.chip.ativo { background: var(--rc-azul); color: #fff; border-color: var(--rc-azul); }
+.chip .icone { font-size: 18px; }
+
+/* desenho: colunas com setas entre elas; no celular vira uma pilha com setas para baixo */
+.diagrama {
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 4px 0;
+}
+.coluna { display: flex; flex-direction: column; gap: 8px; flex: 1 1 0; min-width: 150px; }
+.titulo-coluna { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: var(--rc-texto-3); }
+.seta { display: flex; align-items: center; color: var(--rc-texto-3); }
+
+.caixa {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 2px; text-align: left;
+  padding: 10px 12px; border-radius: var(--rc-raio-g); border: 2px solid var(--rc-borda);
+  background: var(--rc-card); font: inherit; color: inherit; cursor: pointer;
+  transition: opacity .2s, border-color .2s, background .2s;
+  .icone { color: var(--rc-azul); }
+  &.acesa { border-color: var(--rc-azul); background: var(--rc-azul-suave); }
+  &.apagada { opacity: .45; }
+  &.aberta { box-shadow: var(--rc-sombra-alta); opacity: 1; }
+}
+.entrega .caixa { flex: 1 1 0; min-width: 150px; }
+
+.detalhe {
+  border: 1px solid var(--rc-borda); border-radius: var(--rc-raio-g); padding: 12px;
+}
+.tecnologias {
+  list-style: none; margin: 0; padding: 0; display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 10px 20px;
+  li { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+}
+
+.passos {
+  list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px;
+  li {
+    display: flex; gap: 10px; align-items: flex-start; padding: 8px 10px; border-radius: var(--rc-raio);
+    cursor: pointer;
+    &:hover { background: var(--rc-cinza-suave); }
+    &.ativo { background: var(--rc-azul-suave); }
+  }
+  .numero {
+    flex: none; width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center;
+    background: var(--rc-marinho); color: #fff; font-size: 12px; font-weight: 700;
+  }
+}
+
+.ferramentas { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px 24px; }
+
+@media (max-width: 760px) {
+  .diagrama { flex-direction: column; overflow: visible; }
+  .coluna { min-width: 0; }
+  .seta { justify-content: center; .icone { transform: rotate(90deg); } }
+}
+
+/* no celular, os nomes das caixas de um passo quebram linha em vez de empurrar a tela */
+.passos li > .pilha { min-width: 0; overflow-wrap: anywhere; }
+.passos .linha { flex-wrap: wrap; row-gap: 4px; }
+.aviso code { overflow-wrap: anywhere; }

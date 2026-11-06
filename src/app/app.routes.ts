@@ -72,6 +72,7 @@ export const routes: Routes = [
       { path: 'usuarios/:matricula', title: t('Usuário'), data: { permissao: Permissao.USUARIO_GERENCIAR }, loadComponent: () => import('./features/usuarios/usuario-detalhe').then(m => m.UsuarioDetalhe) },
 
       { path: 'monitoramento', title: t('Monitoramento'), data: { permissao: Permissao.MENSAGERIA_MONITORAR }, loadComponent: () => import('./features/monitoramento/monitoramento').then(m => m.Monitoramento) },
+      { path: 'como-funciona', title: t('Como funciona'), data: { permissao: Permissao.MENSAGERIA_MONITORAR }, loadComponent: () => import('./features/como-funciona/como-funciona').then(m => m.ComoFunciona) },
       { path: 'conta', title: t('Minha conta'), loadComponent: () => import('./features/conta/conta').then(m => m.Conta) },
     ],
   },

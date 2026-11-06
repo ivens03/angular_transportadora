@@ -1,5 +1,6 @@
 import { DatePipe } from '@angular/common';
 import { Component, inject, signal } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { environment } from '../../../environments/environment';
 import { AutenticacaoApi } from '../../core/api/autenticacao.api';
 import { SessaoService } from '../../core/auth/sessao.service';
@@ -13,7 +14,7 @@ interface Checagem { quando: Date; ok: boolean; ms: number; detalhe: string; }
  */
 @Component({
   selector: 'app-monitoramento',
-  imports: [DatePipe],
+  imports: [DatePipe, RouterLink],
   template: `
     <div class="conteudo pilha-g">
       <div class="cabecalho-pagina">
@@ -55,6 +56,7 @@ interface Checagem { quando: Date; ok: boolean; ms: number; detalhe: string; }
       <div class="card pilha">
         <h2 class="card-titulo" style="margin:0">Documentação da API</h2>
         <a class="btn btn-secundario" [href]="ambiente.swagger" target="_blank" rel="noopener"><span class="icone">api</span> Abrir Swagger UI</a>
+        <a class="btn btn-secundario" routerLink="/painel/como-funciona"><span class="icone">account_tree</span> Como funciona (do app à VPS)</a>
         <div class="aviso"><span class="icone">info</span>Mensageria e logs de dispositivo (permissões <code>mensageria:monitorar</code> e <code>dispositivo:consultar-logs</code>) ainda não têm endpoint na API.</div>
       </div>
     </div>`,

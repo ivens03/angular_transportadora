@@ -21,6 +21,7 @@ const ATALHOS: Atalho[] = [
   { titulo: 'Novo usuário', texto: 'Entregador ou funcionário', icone: 'person_add', link: '/painel/usuarios/novo', permissao: Permissao.USUARIO_GERENCIAR },
   { titulo: 'Usuários', texto: 'Ativação, bloqueio e códigos', icone: 'group', link: '/painel/usuarios', permissao: Permissao.USUARIO_GERENCIAR },
   { titulo: 'Monitoramento', texto: 'Saúde da API e documentação', icone: 'monitor_heart', link: '/painel/monitoramento', permissao: Permissao.MENSAGERIA_MONITORAR },
+  { titulo: 'Como funciona', texto: 'O caminho do dado, do app à VPS, e as ferramentas', icone: 'account_tree', link: '/painel/como-funciona', permissao: Permissao.MENSAGERIA_MONITORAR },
 ];
 
 /** Início do painel: atalhos e números do dia conforme o perfil de quem entrou. */
