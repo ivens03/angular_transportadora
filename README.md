@@ -49,7 +49,7 @@ API e o resto para cá. Mesmo domínio, então não precisa de CORS. Detalhes no
 |---|---|---|
 | Entregador | `/app` | minhas rotas, execução da rota (mapa, próxima entrega, baixa, GPS), conta |
 | Cliente | `/cliente` | minhas encomendas em três blocos — **a caminho agora** (rua do entregador, quanto falta, quantas entregas antes da sua), **vão ser entregues** e **já entregues** — e o rastreio com o entregador andando no mapa |
-| Suporte | `/painel` | cargas (cadastro com CEP e ponto no mapa), montar rota, acompanhar rota ao vivo, frota |
+| Suporte | `/painel` | **empresas** clientes (cadastro com CNPJ, inclusive o alfanumérico, e endereço de entrega), **nova entrega** para uma empresa já escolhendo entregador e veículo, montar rota, acompanhar rota ao vivo, frota |
 | Administrativo | `/painel` | usuários (cadastro + código de ativação, bloqueio, novo código), frota |
 | Financeiro | `/painel` | consumo da frota (km/l, R$/km, alertas), frota e abastecimentos |
 | Desenvolvimento | `/painel` | monitoramento (saúde/latência da API, Swagger) |
@@ -59,14 +59,22 @@ permissão nem vê o item (e, se digitar a URL, volta para o início).
 
 ## Fluxo principal
 
-1. **Suporte** cadastra cargas (CEP preenche o endereço via ViaCEP; "Localizar" acha o ponto via OpenStreetMap; o pino pode ser arrastado).
-2. **Suporte** monta a rota: escolhe as cargas → veículo (barras de capacidade de peso/volume) e entregador → revisa → **Gerar rota**. A ordem das paradas vem da API.
-3. **Entregador** abre a rota no app e toca **Iniciar rota**: o GPS liga e as posições vão em lote para a API
+1. **Suporte** cadastra a **empresa** cliente (`/painel/empresas/nova`): nome, CNPJ (aceita o novo, com letras —
+   `12.ABC.345/01DE-35`; os dígitos verificadores são conferidos na tela e na API), e-mail de login do portal,
+   telefone e endereço de entrega (CEP preenche via ViaCEP; "Localizar" acha o ponto via OpenStreetMap). Sai um
+   **código de ativação**, mostrado uma vez só, para a empresa criar a senha em "Primeiro acesso".
+2. **Suporte** cria a **nova entrega** (`/painel/cargas/nova`): escolhe a empresa (o destino vem do endereço dela),
+   diz o que vai (descrição, peso, volume) e, se quiser, **quem leva** (entregador e veículo). Com os dois escolhidos,
+   o botão vira **Cadastrar e gerar rota**: a carga é salva e a rota com ela sai pronta, já no app do entregador.
+   Sem eles, a carga fica *aguardando rota* para o passo seguinte.
+   Também dá para criar carga avulsa, sem empresa (destinatário digitado), como antes.
+3. **Suporte** monta a rota (quando juntou várias entregas): escolhe as cargas → veículo (barras de capacidade de peso/volume) e entregador → revisa → **Gerar rota**. A ordem das paradas vem da API.
+4. **Entregador** abre a rota no app e toca **Iniciar rota**: o GPS liga e as posições vão em lote para a API
    (fila no `localStorage`: sem sinal, nada se perde; reenvio é seguro).
-4. A cada parada: **Entregue** ou **Não consegui entregar** (com motivo). A última baixa conclui a rota.
-5. **Suporte** acompanha no mapa: trajeto planejado (tracejado), percurso real (azul), posição atual e progresso,
+5. A cada parada: **Entregue** ou **Não consegui entregar** (com motivo). A última baixa conclui a rota.
+6. **Suporte** acompanha no mapa: trajeto planejado (tracejado), percurso real (azul), posição atual e progresso,
    atualizando sozinho a cada poucos segundos.
-6. **Cliente** acompanha no Portal (`/cliente`): com a encomenda a caminho, vê o veículo andando no mapa, a rua e o
+7. **Cliente** acompanha no Portal (`/cliente`): com a encomenda a caminho, vê o veículo andando no mapa, a rua e o
    bairro onde ele está ("Na Avenida João Pessoa, Montese"), quanto falta e a hora prevista; depois, ela passa
    para "Já entregues" com a hora da entrega. A tela se atualiza sozinha.
 

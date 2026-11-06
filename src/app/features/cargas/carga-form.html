@@ -6,8 +6,8 @@
         <div class="linha"><h1>{{ c.codigo }}</h1><app-status tipo="carga" [valor]="c.status" [comIcone]="true" /></div>
         <p>Cadastrada por {{ c.cadastradaPor }} em {{ c.criadaEm | date }} @if (c.tentativasEntrega) { · {{ c.tentativasEntrega }} tentativa(s) de entrega }</p>
       } @else {
-        <h1>{{ editando() ? 'Carga' : 'Nova carga' }}</h1>
-        <p>O que vai sair, para quem e onde entregar.</p>
+        <h1>{{ editando() ? 'Carga' : 'Nova entrega' }}</h1>
+        <p>Para qual empresa, o que vai e quem leva.</p>
       }
     </div>
   </div>
@@ -17,6 +17,27 @@
   }
 
   <form [formGroup]="form" (ngSubmit)="salvar()" class="pilha-g" novalidate>
+    <section class="card">
+      <h2 class="card-titulo">Para qual empresa</h2>
+      <div class="campo">
+        <label for="cf-empresa">Empresa cliente</label>
+        <select id="cf-empresa" class="entrada" [value]="clienteMatricula()" (change)="escolherEmpresa($any($event.target).value)" [disabled]="form.disabled">
+          <option value="">Nenhuma (destinatário avulso)</option>
+          @for (e of empresas(); track e.matricula) {
+            <option [value]="e.matricula" [selected]="e.matricula === clienteMatricula()">{{ e.nome }}{{ e.cnpj ? ' · ' + formatarCnpj(e.cnpj) : '' }}</option>
+          }
+        </select>
+        @if (empresaEscolhida(); as e) {
+          <span class="dica">
+            @if (e.endereco) { Destino preenchido com o endereço da empresa: {{ e.endereco }} — {{ e.bairro }}. A empresa acompanha pelo Portal do Cliente. }
+            @else { Empresa sem endereço cadastrado: preencha o destino abaixo. }
+          </span>
+        } @else {
+          <span class="dica">Não achou? <a routerLink="/painel/empresas/nova">Cadastre a empresa</a>.</span>
+        }
+      </div>
+    </section>
+
     <section class="card">
       <h2 class="card-titulo">Conteúdo</h2>
       <div class="form-grade">
@@ -105,6 +126,32 @@
       <app-mapa-ponto [(latitude)]="latitude" [(longitude)]="longitude" [somenteLeitura]="bloqueada()" />
     </section>
 
+    @if (!carga()) {
+      <section class="card">
+        <h2 class="card-titulo">Quem leva <span class="texto-3 pequeno">(opcional)</span></h2>
+        <p class="pequeno texto-2" style="margin-bottom:12px">Escolha o entregador e o veículo para a entrega já sair numa rota. Sem isso, ela fica na fila para montar a rota depois.</p>
+        <div class="form-grade">
+          <div class="campo">
+            <label for="cf-ent">Entregador</label>
+            <select id="cf-ent" class="entrada" [value]="entregadorMatricula" (change)="entregadorMatricula = $any($event.target).value">
+              <option value="">Definir depois</option>
+              @for (e of entregadores(); track e.matricula) { <option [value]="e.matricula">{{ e.nome }} · {{ e.matricula }}</option> }
+            </select>
+          </div>
+          <div class="campo">
+            <label for="cf-vei">Veículo</label>
+            <select id="cf-vei" class="entrada" (change)="veiculoId = $any($event.target).value ? +$any($event.target).value : null">
+              <option value="">Definir depois</option>
+              @for (v of veiculos(); track v.id) { <option [value]="v.id">{{ v.placa }} · {{ v.modelo }}</option> }
+            </select>
+          </div>
+        </div>
+        @if (!!entregadorMatricula !== !!veiculoId) {
+          <span class="dica laranja">Escolha os dois (entregador e veículo) para gerar a rota.</span>
+        }
+      </section>
+    }
+
     @if (erro()) { <div class="aviso erro"><span class="icone">error</span>{{ erro() }}</div> }
 
     @if (!bloqueada()) {
@@ -114,7 +161,7 @@
         }
         <button class="btn btn-primario" type="submit" [disabled]="salvando()">
           @if (salvando()) { <span class="icone girando">progress_activity</span> }
-          {{ carga() ? 'Salvar alterações' : 'Cadastrar carga' }}
+          {{ carga() ? 'Salvar alterações' : (entregadorMatricula && veiculoId ? 'Cadastrar e gerar rota' : 'Cadastrar entrega') }}
         </button>
       </div>
     }

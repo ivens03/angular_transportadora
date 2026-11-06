@@ -6,7 +6,7 @@
  * Funções puras (sem Angular) para testar fácil; a diretiva shared/mascara.ts só liga isso ao <input>.
  */
 export type TipoMascara =
-  | 'cep' | 'telefone' | 'placa' | 'renavam' | 'uf' | 'pin' | 'codigo' | 'matricula' | 'email'
+  | 'cep' | 'cnpj' | 'telefone' | 'placa' | 'renavam' | 'uf' | 'pin' | 'codigo' | 'matricula' | 'email'
   | 'ano' | 'inteiro' | `decimal:${number}`
   /** sem máscara (ex.: o mesmo campo é PIN para o entregador e senha livre para o painel) */
   | 'livre';
@@ -58,6 +58,21 @@ export function aplicar(tipo: TipoMascara, entrada: string | number | null | und
       const d = digitos(s, 8);
       return { exibir: d.length > 5 ? `${d.slice(0, 5)}-${d.slice(5)}` : d, valor: d };
     }
+    case 'cnpj': {
+      // 12 letras/números + 2 dígitos verificadores (CNPJ alfanumérico; o numérico continua igual): 12.ABC.345/01DE-35
+      let c = '';
+      for (const ch of s.toUpperCase().replace(/[^A-Z0-9]/g, '')) {
+        if (c.length >= 14) break;
+        if (c.length < 12 || /\d/.test(ch)) c += ch;
+      }
+      const partes = [c.slice(0, 2), c.slice(2, 5), c.slice(5, 8), c.slice(8, 12), c.slice(12)];
+      let exibir = partes[0];
+      if (partes[1]) exibir += '.' + partes[1];
+      if (partes[2]) exibir += '.' + partes[2];
+      if (partes[3]) exibir += '/' + partes[3];
+      if (partes[4]) exibir += '-' + partes[4];
+      return { exibir, valor: c };
+    }
     case 'telefone': {
       const d = digitos(s, 11);
       let exibir = d;
@@ -108,7 +123,7 @@ export function aplicar(tipo: TipoMascara, entrada: string | number | null | und
 export function significativo(tipo: TipoMascara, c: string): boolean {
   if (tipo.startsWith('decimal:')) return /[\d,]/.test(c);
   switch (tipo) {
-    case 'placa': case 'codigo': case 'uf': return /[A-Za-z0-9]/.test(c);
+    case 'placa': case 'codigo': case 'uf': case 'cnpj': return /[A-Za-z0-9]/.test(c);
     case 'matricula': return /[A-Za-z0-9]/.test(c);
     case 'email': return !/\s/.test(c);
     default: return /\d/.test(c);

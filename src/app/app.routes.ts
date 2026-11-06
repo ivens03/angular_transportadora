@@ -50,8 +50,11 @@ export const routes: Routes = [
       { path: '', title: t('Início'), loadComponent: () => import('./features/inicio/inicio').then(m => m.Inicio) },
 
       { path: 'cargas', title: t('Cargas'), data: { permissao: Permissao.ENTREGA_CADASTRAR }, loadComponent: () => import('./features/cargas/cargas-lista').then(m => m.CargasLista) },
-      { path: 'cargas/nova', title: t('Nova carga'), data: { permissao: Permissao.ENTREGA_CADASTRAR }, loadComponent: () => import('./features/cargas/carga-form').then(m => m.CargaFormulario) },
+      { path: 'cargas/nova', title: t('Nova entrega'), data: { permissao: Permissao.ENTREGA_CADASTRAR }, loadComponent: () => import('./features/cargas/carga-form').then(m => m.CargaFormulario) },
       { path: 'cargas/:id', title: t('Carga'), data: { permissao: Permissao.ENTREGA_CADASTRAR }, loadComponent: () => import('./features/cargas/carga-form').then(m => m.CargaFormulario) },
+
+      { path: 'empresas', title: t('Empresas'), data: { permissao: Permissao.CLIENTE_CADASTRAR }, loadComponent: () => import('./features/empresas/empresas-lista').then(m => m.EmpresasLista) },
+      { path: 'empresas/nova', title: t('Nova empresa'), data: { permissao: Permissao.CLIENTE_CADASTRAR }, loadComponent: () => import('./features/empresas/empresa-nova').then(m => m.EmpresaNova) },
 
       { path: 'rotas', title: t('Rotas'), data: { permissao: Permissao.MAPA_ACOMPANHAR }, loadComponent: () => import('./features/rotas/rotas-lista').then(m => m.RotasLista) },
       { path: 'rotas/nova', title: t('Montar rota'), data: { permissao: Permissao.ENTREGA_CADASTRAR }, loadComponent: () => import('./features/rotas/rota-nova').then(m => m.RotaNova) },

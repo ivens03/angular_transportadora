@@ -7,6 +7,13 @@ describe('máscaras dos campos', () => {
     expect(aplicar('cep', '603250019999').valor).toBe('60325001');
   });
 
+  it('CNPJ numérico e alfanumérico, com os 2 últimos sempre números', () => {
+    expect(aplicar('cnpj', '11222333000181')).toEqual({ exibir: '11.222.333/0001-81', valor: '11222333000181' });
+    expect(aplicar('cnpj', '12.abc.345/01de-35')).toEqual({ exibir: '12.ABC.345/01DE-35', valor: '12ABC34501DE35' });
+    expect(aplicar('cnpj', '12ABC34501DEXY').valor).toBe('12ABC34501DE'); // letra no dígito verificador não entra
+    expect(aplicar('cnpj', '11222').exibir).toBe('11.222');
+  });
+
   it('telefone: celular, fixo e enquanto digita', () => {
     expect(aplicar('telefone', '85999990000')).toEqual({ exibir: '(85) 99999-0000', valor: '85999990000' });
     expect(aplicar('telefone', '8532221111')).toEqual({ exibir: '(85) 3222-1111', valor: '8532221111' });

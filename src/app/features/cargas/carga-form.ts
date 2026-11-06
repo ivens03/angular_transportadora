@@ -4,19 +4,28 @@ import { Component, OnInit, computed, inject, input, signal } from '@angular/cor
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { CargasApi } from '../../core/api/cargas.api';
+import { ClientesApi } from '../../core/api/clientes.api';
+import { RotasApi } from '../../core/api/rotas.api';
+import { UsuariosApi } from '../../core/api/usuarios.api';
+import { VeiculosApi } from '../../core/api/veiculos.api';
+import { formatarCnpj } from '../../core/cnpj';
 import { EnderecoApi } from '../../core/api/endereco.api';
 import { AvisoService } from '../../core/aviso.service';
 import { aplicarErrosDeCampo, erroApi } from '../../core/erro';
-import { Carga, CargaForm } from '../../core/modelos';
+import { Carga, CargaForm, Cliente, Entregador, Veiculo } from '../../core/modelos';
 import { EtiquetaStatus } from '../../shared/etiqueta-status';
 import { MapaPonto } from '../../shared/mapa/mapa-ponto';
 
 const CAMPOS_ENDERECO = ['endereco', 'bairro', 'cidade', 'uf', 'cep'] as const;
 
 /**
- * Cadastro (POST) e edição (PATCH) de carga. O destino precisa de coordenadas:
+ * Cadastro (POST) e edição (PATCH) de carga — a "entrega". O destino precisa de coordenadas:
  * o CEP preenche o endereço (ViaCEP), "Localizar" acha o ponto (OpenStreetMap)
  * e o pino pode ser ajustado à mão no mapa.
+ *
+ * Entrega para uma empresa: escolhida a empresa, destinatário e endereço vêm do cadastro dela e a carga fica
+ * vinculada (a empresa acompanha pelo Portal do Cliente). Na carga nova dá para já escolher o entregador e o
+ * veículo: depois de cadastrar, a rota é gerada na hora (POST /rotas só com esta carga).
  */
 @Component({
   selector: 'app-carga-form',
@@ -25,6 +34,11 @@ const CAMPOS_ENDERECO = ['endereco', 'bairro', 'cidade', 'uf', 'cep'] as const;
 })
 export class CargaFormulario implements OnInit {
   private readonly api = inject(CargasApi);
+  private readonly clientesApi = inject(ClientesApi);
+  private readonly rotasApi = inject(RotasApi);
+  private readonly usuariosApi = inject(UsuariosApi);
+  private readonly veiculosApi = inject(VeiculosApi);
+  protected readonly formatarCnpj = formatarCnpj;
   private readonly enderecos = inject(EnderecoApi);
   private readonly avisos = inject(AvisoService);
   private readonly router = inject(Router);
@@ -32,6 +46,18 @@ export class CargaFormulario implements OnInit {
 
   /** :id da URL (ausente em /cargas/nova). */
   readonly id = input<string>();
+  /** ?empresa=CLI-000001: já abre com a empresa escolhida (vindo da tela de Empresas). */
+  readonly empresa = input<string>();
+
+  protected readonly empresas = signal<Cliente[]>([]);
+  protected readonly entregadores = signal<Entregador[]>([]);
+  protected readonly veiculos = signal<Veiculo[]>([]);
+  protected readonly empresaEscolhida = computed(() =>
+    this.empresas().find(e => e.matricula === this.clienteMatricula()) ?? null);
+  /** Espelho do campo clienteMatricula em signal (para o computed acima). */
+  protected readonly clienteMatricula = signal('');
+  protected entregadorMatricula = '';
+  protected veiculoId: number | null = null;
 
   protected readonly carga = signal<Carga | null>(null);
   protected readonly salvando = signal(false);
@@ -56,21 +82,49 @@ export class CargaFormulario implements OnInit {
     bairro: ['', [Validators.required, Validators.maxLength(80)]],
     cidade: ['Fortaleza', [Validators.required, Validators.maxLength(80)]],
     uf: ['CE', [Validators.required, Validators.pattern(/^[A-Za-z]{2}$/)]],
+    clienteMatricula: [''],
   });
 
   ngOnInit(): void {
+    this.clientesApi.listar().subscribe({
+      next: p => {
+        this.empresas.set(p.content);
+        const pedida = this.empresa();
+        if (pedida && !this.id()) this.escolherEmpresa(pedida);
+      },
+    });
     const id = this.id();
-    if (!id) return;
+    if (!id) {
+      this.usuariosApi.entregadores('ATIVO').subscribe({ next: p => this.entregadores.set(p.content) });
+      this.veiculosApi.listar({ status: 'ATIVO', size: 100, sort: 'placa' }).subscribe({ next: p => this.veiculos.set(p.content) });
+      return;
+    }
     this.api.buscar(Number(id)).subscribe({
       next: c => {
         this.carga.set(c);
-        this.form.patchValue({ ...c, destinatarioTelefone: c.destinatarioTelefone ?? '', cep: c.cep ?? '' });
+        this.form.patchValue({ ...c, destinatarioTelefone: c.destinatarioTelefone ?? '', cep: c.cep ?? '', clienteMatricula: c.clienteMatricula ?? '' });
+        this.clienteMatricula.set(c.clienteMatricula ?? '');
         this.latitude.set(c.latitude);
         this.longitude.set(c.longitude);
         if (c.status !== 'AGUARDANDO_ROTA') this.form.disable();
       },
       error: e => this.erro.set(erroApi(e).mensagem),
     });
+  }
+
+  /** Escolheu a empresa: o destino vem do cadastro dela (dá para ajustar depois). Vazio = destinatário avulso. */
+  protected escolherEmpresa(matricula: string): void {
+    this.form.controls.clienteMatricula.setValue(matricula);
+    this.form.controls.clienteMatricula.markAsDirty();
+    this.clienteMatricula.set(matricula);
+    const e = this.empresas().find(x => x.matricula === matricula);
+    if (!e) return;
+    this.form.patchValue({ destinatarioNome: e.nome, destinatarioTelefone: e.telefone ?? '' });
+    if (e.endereco && e.latitude !== null && e.longitude !== null) {
+      this.form.patchValue({ cep: e.cep ?? '', endereco: e.endereco, bairro: e.bairro ?? '', cidade: e.cidade ?? '', uf: e.uf ?? '' });
+      this.latitude.set(e.latitude);
+      this.longitude.set(e.longitude);
+    }
   }
 
   protected buscarCep(): void {
@@ -124,12 +178,14 @@ export class CargaFormulario implements OnInit {
       cep: v.cep.replace(/\D/g, '') || null,
       latitude: this.latitude()!,
       longitude: this.longitude()!,
+      clienteMatricula: v.clienteMatricula || null,
     };
 
     const atual = this.carga();
     const pedido$ = atual ? this.api.atualizar(atual.id, this.diferencas(atual, dados)) : this.api.cadastrar(dados);
     pedido$.subscribe({
       next: c => {
+        if (!atual && this.entregadorMatricula && this.veiculoId) { this.gerarRota(c); return; }
         this.avisos.sucesso(atual ? 'Carga atualizada.' : `Carga ${c.codigo} cadastrada.`);
         this.router.navigate(['/painel/cargas']);
       },
@@ -142,12 +198,29 @@ export class CargaFormulario implements OnInit {
     });
   }
 
+  /** Entregador e veículo escolhidos: a carga já sai numa rota só dela (o entregador vê em "Minhas rotas"). */
+  private gerarRota(c: Carga): void {
+    const entregador = this.entregadores().find(e => e.matricula === this.entregadorMatricula)?.nome ?? this.entregadorMatricula;
+    this.rotasApi.gerar({ veiculoId: this.veiculoId!, entregadorMatricula: this.entregadorMatricula, cargaIds: [c.id] }).subscribe({
+      next: r => {
+        this.avisos.sucesso(`Carga ${c.codigo} cadastrada e rota ${r.codigo} criada para ${entregador}.`);
+        this.router.navigate(['/painel/rotas', r.id]);
+      },
+      error: e => {
+        this.avisos.erro(`Carga ${c.codigo} cadastrada, mas a rota não foi criada: ${erroApi(e).mensagem} Monte em Rotas.`);
+        this.router.navigate(['/painel/cargas']);
+      },
+    });
+  }
+
   /** PATCH só com o que mudou; se o destino mudou, vai o endereço inteiro (regra do back-end). */
   private diferencas(antes: Carga, depois: CargaForm): Partial<CargaForm> {
     const mud: Partial<CargaForm> = {};
     for (const k of ['descricao', 'pesoKg', 'volumeM3', 'destinatarioNome', 'destinatarioTelefone'] as const) {
       if ((antes[k] ?? null) !== (depois[k] ?? null)) (mud as Record<string, unknown>)[k] = depois[k];
     }
+    // "" = desvincular a empresa (no PATCH, nulo significa "não mexe")
+    if ((antes.clienteMatricula ?? null) !== (depois.clienteMatricula ?? null)) mud.clienteMatricula = depois.clienteMatricula ?? '';
     const destinoMudou = [...CAMPOS_ENDERECO, 'latitude', 'longitude'].some(k =>
       (antes[k as keyof Carga] ?? null) !== (depois[k as keyof CargaForm] ?? null));
     if (destinoMudou) {

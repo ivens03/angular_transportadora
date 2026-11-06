@@ -66,6 +66,7 @@ export const Permissao = {
   MAPA_ACOMPANHAR: 'mapa:acompanhar',
   MENSAGERIA_MONITORAR: 'mensageria:monitorar',
   DISPOSITIVO_CONSULTAR_LOGS: 'dispositivo:consultar-logs',
+  CLIENTE_CADASTRAR: 'cliente:cadastrar',
   ENCOMENDA_ACOMPANHAR: 'encomenda:acompanhar',
   WEBHOOK_GERENCIAR: 'webhook:gerenciar',
 } as const;
@@ -191,12 +192,51 @@ export interface Carga {
   longitude: number;
   status: StatusCarga;
   tentativasEntrega: number;
+  /** Empresa cliente dona da entrega (acompanha no Portal do Cliente); nula = destinatário avulso. */
+  clienteMatricula: string | null;
+  clienteNome: string | null;
   cadastradaPor: string;
   criadaEm: string;
   atualizadaEm: string;
 }
 
-export type CargaForm = Omit<Carga, 'id' | 'codigo' | 'status' | 'tentativasEntrega' | 'cadastradaPor' | 'criadaEm' | 'atualizadaEm'>;
+export type CargaForm = Omit<Carga, 'id' | 'codigo' | 'status' | 'tentativasEntrega' | 'cadastradaPor' | 'criadaEm' | 'atualizadaEm'
+  | 'clienteMatricula' | 'clienteNome'> & {
+  /** Matrícula da empresa (CLI-…); no PATCH, "" desvincula. */
+  clienteMatricula?: string | null;
+};
+
+// ---------- empresas clientes (GET/POST /clientes) ----------
+export interface Cliente {
+  matricula: string;
+  nome: string;
+  email: string;
+  status: StatusUsuario;
+  /** Sem pontuação; pode ter letras (CNPJ alfanumérico). Nulo em cliente antigo (sem dados da empresa). */
+  cnpj: string | null;
+  telefone: string | null;
+  cep: string | null;
+  endereco: string | null;
+  bairro: string | null;
+  cidade: string | null;
+  uf: string | null;
+  latitude: number | null;
+  longitude: number | null;
+}
+
+export interface NovaEmpresa {
+  nome: string;
+  cnpj: string;
+  email: string;
+  telefone: string | null;
+  cep: string | null;
+  endereco: string;
+  bairro: string;
+  cidade: string;
+  uf: string;
+  latitude: number;
+  longitude: number;
+}
 
 // ---------- rotas ----------
 export type StatusRota = 'PLANEJADA' | 'EM_ANDAMENTO' | 'CONCLUIDA' | 'CANCELADA';

@@ -14,7 +14,7 @@ interface Atalho { titulo: string; texto: string; icone: string; link: string; p
 
 const ATALHOS: Atalho[] = [
   { titulo: 'Montar rota', texto: 'Escolha cargas, veículo e entregador', icone: 'add_road', link: '/painel/rotas/nova', permissao: Permissao.ENTREGA_CADASTRAR },
-  { titulo: 'Nova carga', texto: 'Cadastre o que vai sair para entrega', icone: 'add_box', link: '/painel/cargas/nova', permissao: Permissao.ENTREGA_CADASTRAR },
+  { titulo: 'Nova entrega', texto: 'Para qual empresa, o que vai e quem leva', icone: 'add_box', link: '/painel/cargas/nova', permissao: Permissao.ENTREGA_CADASTRAR },
   { titulo: 'Acompanhar rotas', texto: 'Veja no mapa quem está na rua', icone: 'map', link: '/painel/rotas', permissao: Permissao.MAPA_ACOMPANHAR },
   { titulo: 'Frota', texto: 'Veículos e abastecimentos', icone: 'local_shipping', link: '/painel/veiculos', permissao: Permissao.VEICULO_GERENCIAR },
   { titulo: 'Consumo', texto: 'km/l, R$/km e alertas', icone: 'local_gas_station', link: '/painel/consumo', permissao: Permissao.CONSUMO_VER_METRICAS },

@@ -24,7 +24,7 @@ import { Vazio } from '../../shared/vazio';
         </div>
         <div class="acoes">
           <a class="btn btn-secundario" routerLink="/painel/rotas/nova"><span class="icone">add_road</span> Montar rota</a>
-          <a class="btn btn-primario" routerLink="/painel/cargas/nova"><span class="icone">add</span> Nova carga</a>
+          <a class="btn btn-primario" routerLink="/painel/cargas/nova"><span class="icone">add</span> Nova entrega</a>
         </div>
       </div>
 
@@ -47,7 +47,7 @@ import { Vazio } from '../../shared/vazio';
         <app-carregando />
       } @else if (pagina()!.content.length === 0) {
         <div class="card"><app-vazio icone="inventory_2" titulo="Nenhuma carga por aqui"
-          texto="Mude os filtros ou cadastre uma nova carga."><a class="btn btn-primario" routerLink="/painel/cargas/nova">Nova carga</a></app-vazio></div>
+          texto="Mude os filtros ou cadastre uma nova entrega."><a class="btn btn-primario" routerLink="/painel/cargas/nova">Nova entrega</a></app-vazio></div>
       } @else {
         <ul class="lista card sem-padding">
           @for (c of pagina()!.content; track c.id) {
@@ -58,6 +58,7 @@ import { Vazio } from '../../shared/vazio';
                 <span class="item-sub" style="display:block">{{ c.destinatarioNome }} · {{ c.bairro }}, {{ c.cidade }}</span>
                 <span class="linha" style="margin-top:4px">
                   <app-status tipo="carga" [valor]="c.status" />
+                  @if (c.clienteNome) { <span class="etiqueta azul"><span class="icone" style="font-size:14px">storefront</span> {{ c.clienteNome }}</span> }
                   @if (c.tentativasEntrega > 0) { <span class="etiqueta laranja">{{ c.tentativasEntrega }}ª tentativa</span> }
                   <span class="mini texto-3">{{ c.codigo }}</span>
                 </span>

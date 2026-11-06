@@ -6,6 +6,7 @@ export interface ItemMenu { rotulo: string; icone: string; link: string; permiss
 export const MENU_PAINEL: ItemMenu[] = [
   { rotulo: 'Início', icone: 'home', link: '/painel', exato: true },
   { rotulo: 'Cargas', icone: 'inventory_2', link: '/painel/cargas', permissao: Permissao.ENTREGA_CADASTRAR },
+  { rotulo: 'Empresas', icone: 'storefront', link: '/painel/empresas', permissao: Permissao.CLIENTE_CADASTRAR },
   { rotulo: 'Rotas', icone: 'alt_route', link: '/painel/rotas', permissao: Permissao.MAPA_ACOMPANHAR },
   { rotulo: 'Frota', icone: 'local_shipping', link: '/painel/veiculos', permissao: Permissao.VEICULO_GERENCIAR },
   { rotulo: 'Consumo', icone: 'local_gas_station', link: '/painel/consumo', permissao: Permissao.CONSUMO_VER_METRICAS },
