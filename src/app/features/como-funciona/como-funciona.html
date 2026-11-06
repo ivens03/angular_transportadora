@@ -105,7 +105,7 @@
                 <span class="numero">{{ $index + 1 }}</span>
                 <span class="pilha" style="gap:4px">
                   <span class="linha pequeno">
-                    <span class="etiqueta">{{ nome(p.de) }}</span><span class="icone texto-3">arrow_forward</span><span class="etiqueta">{{ nome(p.para) }}</span>
+                    <span class="etiqueta">{{ nome(p.de) }}</span>@if (p.para !== p.de) {<span class="icone texto-3">arrow_forward</span><span class="etiqueta">{{ nome(p.para) }}</span>}
                   </span>
                   <span>{{ p.oque }}</span>
                 </span>
