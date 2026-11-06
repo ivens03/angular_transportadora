@@ -1,3 +1,4 @@
+import { Mascara } from '../../shared/mascara';
 import { Component, computed, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -11,7 +12,7 @@ import { CodigoAtivacaoCartao } from './codigo-ativacao';
 /** Cadastro de matrícula: EXTERNO = entregador (PIN no app); INTERNO = funcionário de um departamento (senha no painel). */
 @Component({
   selector: 'app-usuario-novo',
-  imports: [ReactiveFormsModule, RouterLink, CodigoAtivacaoCartao],
+  imports: [Mascara, ReactiveFormsModule, RouterLink, CodigoAtivacaoCartao],
   template: `
     <div class="conteudo" style="max-width:720px">
       <a class="voltar" routerLink="/painel/usuarios"><span class="icone">arrow_back</span> Usuários</a>
@@ -43,7 +44,7 @@ import { CodigoAtivacaoCartao } from './codigo-ativacao';
           </div>
           <div class="campo">
             <label for="un-email">E-mail {{ vinculo() === 'EXTERNO' ? '(opcional)' : 'corporativo' }}</label>
-            <input id="un-email" class="entrada" type="email" formControlName="email" maxlength="200">
+            <input id="un-email" class="entrada" type="email" mascara="email" formControlName="email" maxlength="200">
             @if (vinculo() === 'INTERNO') { <span class="dica">É o login do painel.</span> }
             @if (inv('email')) { <span class="erro">{{ srv('email') ?? 'E-mail inválido.' }}</span> }
           </div>

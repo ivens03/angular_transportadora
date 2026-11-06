@@ -114,6 +114,12 @@ src/environments/       URL da API e ajustes de GPS por ambiente
 
 ## Decisões
 
+- **Máscara em todo campo com formato** (`shared/mascara.ts` + regras em `core/mascaras.ts`): CEP `00000-000`,
+  telefone `(85) 99999-0000`, placa (`ABC1234`/`ABC1D23`, letra ou número em cada posição), RENAVAM (11 números), UF,
+  PIN (6 números), código de ativação, matrícula (`ent000001` → `ENT-000001`), e-mail (sem espaço, minúsculo) e
+  números (`15.230`, `1.250,50` com vírgula). O que não cabe no formato nem aparece no campo. A diretiva é um
+  **ControlValueAccessor** (a ponte entre o `<input>` e o formulário): o campo mostra o texto formatado e o
+  formulário guarda o valor limpo que a API espera (CEP `60325001`, peso `1250.5` como número). Uso: `<input mascara="cep" formControlName="cep">`.
 - **PATCH com `application/merge-patch+json`** e só com o que mudou (padrão REST da API; nunca PUT).
 - **Token no `localStorage`**: o entregador não perde a sessão ao bloquear o celular. A sessão expira com o token (12 h app / 8 h painel).
 - **PIN/senha vencido** (403 `CREDENCIAL_EXPIRADA`) leva direto para a troca obrigatória.

@@ -27,12 +27,12 @@
         </div>
         <div class="campo">
           <label for="cf-peso">Peso (kg)</label>
-          <input id="cf-peso" class="entrada" type="number" inputmode="decimal" step="0.01" min="0.01" formControlName="pesoKg">
+          <input id="cf-peso" class="entrada" mascara="decimal:2" formControlName="pesoKg" placeholder="18,5">
           @if (invalido('pesoKg')) { <span class="erro">{{ erroServidor('pesoKg') ?? 'Informe o peso.' }}</span> }
         </div>
         <div class="campo">
           <label for="cf-vol">Volume (m³)</label>
-          <input id="cf-vol" class="entrada" type="number" inputmode="decimal" step="0.001" min="0.001" formControlName="volumeM3">
+          <input id="cf-vol" class="entrada" mascara="decimal:3" formControlName="volumeM3" placeholder="0,12">
           <span class="dica">Ex.: caixa 40×40×50 cm = 0,08 m³</span>
           @if (invalido('volumeM3')) { <span class="erro">{{ erroServidor('volumeM3') ?? 'Informe o volume.' }}</span> }
         </div>
@@ -49,7 +49,7 @@
         </div>
         <div class="campo">
           <label for="cf-tel">Telefone <span class="texto-3">(opcional)</span></label>
-          <input id="cf-tel" class="entrada" type="tel" inputmode="tel" formControlName="destinatarioTelefone" placeholder="(85) 99999-0000">
+          <input id="cf-tel" class="entrada" type="tel" mascara="telefone" formControlName="destinatarioTelefone" placeholder="(85) 99999-0000">
           @if (invalido('destinatarioTelefone')) { <span class="erro">{{ erroServidor('destinatarioTelefone') ?? 'Telefone com DDD (10 a 13 dígitos).' }}</span> }
         </div>
       </div>
@@ -61,7 +61,7 @@
         <div class="campo">
           <label for="cf-cep">CEP</label>
           <div class="linha">
-            <input id="cf-cep" class="entrada" inputmode="numeric" formControlName="cep" placeholder="60150-160" maxlength="9">
+            <input id="cf-cep" class="entrada" mascara="cep" formControlName="cep" placeholder="60150-160">
             <button class="btn btn-secundario" type="button" (click)="buscarCep()" [disabled]="buscandoCep() || form.disabled">
               <span class="icone" [class.girando]="buscandoCep()">{{ buscandoCep() ? 'progress_activity' : 'search' }}</span>
             </button>
@@ -85,7 +85,7 @@
           </div>
           <div class="campo">
             <label for="cf-uf">UF</label>
-            <input id="cf-uf" class="entrada" formControlName="uf" maxlength="2" style="text-transform:uppercase">
+            <input id="cf-uf" class="entrada" mascara="uf" formControlName="uf">
           </div>
         </div>
       </div>

@@ -1,3 +1,4 @@
+import { Mascara } from '../../shared/mascara';
 import { DatePipe } from '@angular/common';
 import { Component, OnInit, computed, inject, input, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -19,7 +20,7 @@ const CAMPOS_ENDERECO = ['endereco', 'bairro', 'cidade', 'uf', 'cep'] as const;
  */
 @Component({
   selector: 'app-carga-form',
-  imports: [ReactiveFormsModule, RouterLink, DatePipe, MapaPonto, EtiquetaStatus],
+  imports: [Mascara, ReactiveFormsModule, RouterLink, DatePipe, MapaPonto, EtiquetaStatus],
   templateUrl: './carga-form.html',
 })
 export class CargaFormulario implements OnInit {

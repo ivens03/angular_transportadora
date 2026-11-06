@@ -5,6 +5,7 @@ import { AutenticacaoApi } from '../../core/api/autenticacao.api';
 import { SessaoService } from '../../core/auth/sessao.service';
 import { erroApi } from '../../core/erro';
 import { Logo } from '../../shared/logo';
+import { Mascara } from '../../shared/mascara';
 
 type Modo = 'app' | 'painel' | 'cliente';
 
@@ -17,7 +18,7 @@ type Modo = 'app' | 'painel' | 'cliente';
  */
 @Component({
   selector: 'app-entrar',
-  imports: [ReactiveFormsModule, RouterLink, Logo],
+  imports: [ReactiveFormsModule, RouterLink, Logo, Mascara],
   styleUrl: './acesso.scss',
   template: `
     <div class="faixa"><app-logo /></div>
@@ -49,11 +50,11 @@ type Modo = 'app' | 'painel' | 'cliente';
           <form [formGroup]="app" (ngSubmit)="entrar()">
             <div class="campo">
               <label for="mat">Matrícula</label>
-              <input id="mat" class="entrada" formControlName="matricula" placeholder="ENT-000001" autocapitalize="characters" autocomplete="username">
+              <input id="mat" class="entrada" mascara="matricula" formControlName="matricula" placeholder="ENT-000001" autocapitalize="characters" autocomplete="username">
             </div>
             <div class="campo">
               <label for="pin">PIN</label>
-              <input id="pin" class="entrada entrada-pin" type="password" inputmode="numeric" maxlength="6" formControlName="pin" autocomplete="current-password" placeholder="••••••">
+              <input id="pin" class="entrada entrada-pin" type="password" mascara="pin" formControlName="pin" autocomplete="current-password" placeholder="••••••">
               <span class="dica">Os 6 números que você cadastrou no primeiro acesso.</span>
             </div>
             @if (erro()) { <div class="aviso erro"><span class="icone">error</span>{{ erro() }}</div> }
@@ -65,7 +66,7 @@ type Modo = 'app' | 'painel' | 'cliente';
           <form [formGroup]="painel" (ngSubmit)="entrar()">
             <div class="campo">
               <label for="email">{{ modo() === 'cliente' ? 'E-mail' : 'E-mail corporativo' }}</label>
-              <input id="email" class="entrada" type="email" formControlName="email" placeholder="nome@empresa.com" autocomplete="username">
+              <input id="email" class="entrada" type="email" mascara="email" formControlName="email" placeholder="nome@empresa.com" autocomplete="username">
               @if (modo() === 'cliente') { <span class="dica">Acompanhe suas encomendas e veja o entregador a caminho.</span> }
             </div>
             <div class="campo">

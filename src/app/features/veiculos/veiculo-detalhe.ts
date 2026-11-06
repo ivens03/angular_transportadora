@@ -1,3 +1,4 @@
+import { Mascara } from '../../shared/mascara';
 import { CurrencyPipe, DatePipe, DecimalPipe } from '@angular/common';
 import { Component, OnInit, computed, inject, input, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -17,7 +18,7 @@ import { Vazio } from '../../shared/vazio';
 /** Ficha do veículo: dados, consumo dos últimos 30 dias (Financeiro) e abastecimentos. */
 @Component({
   selector: 'app-veiculo-detalhe',
-  imports: [RouterLink, ReactiveFormsModule, DecimalPipe, DatePipe, CurrencyPipe, EtiquetaStatus, Folha, Paginacao, Vazio],
+  imports: [Mascara, RouterLink, ReactiveFormsModule, DecimalPipe, DatePipe, CurrencyPipe, EtiquetaStatus, Folha, Paginacao, Vazio],
   templateUrl: './veiculo-detalhe.html',
 })
 export class VeiculoDetalhe implements OnInit {

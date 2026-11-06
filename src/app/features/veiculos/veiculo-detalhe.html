@@ -79,11 +79,11 @@
       <form [formGroup]="form" (ngSubmit)="registrar()" class="pilha" style="gap:14px">
         <div class="campo"><label for="ab-data">Data e hora</label><input id="ab-data" class="entrada" type="datetime-local" formControlName="dataHora"></div>
         <div class="grade-2">
-          <div class="campo"><label for="ab-odo">Odômetro (km)</label><input id="ab-odo" class="entrada" type="number" inputmode="numeric" formControlName="odometroKm"></div>
-          <div class="campo"><label for="ab-l">Litros</label><input id="ab-l" class="entrada" type="number" inputmode="decimal" step="0.001" formControlName="litros"></div>
+          <div class="campo"><label for="ab-odo">Odômetro (km)</label><input id="ab-odo" class="entrada" mascara="inteiro" formControlName="odometroKm" placeholder="15.230"></div>
+          <div class="campo"><label for="ab-l">Litros</label><input id="ab-l" class="entrada" mascara="decimal:3" formControlName="litros" placeholder="40,5"></div>
         </div>
         <div class="grade-2">
-          <div class="campo"><label for="ab-v">Valor total (R$)</label><input id="ab-v" class="entrada" type="number" inputmode="decimal" step="0.01" formControlName="valorTotal"></div>
+          <div class="campo"><label for="ab-v">Valor total (R$)</label><input id="ab-v" class="entrada" mascara="decimal:2" formControlName="valorTotal" placeholder="250,00"></div>
           <div class="campo"><label for="ab-c">Combustível</label>
             <select id="ab-c" class="entrada" formControlName="combustivel">
               @for (c of opcoesCombustivel(); track c) { <option [value]="c">{{ nomesCombustivel[c] }}</option> }

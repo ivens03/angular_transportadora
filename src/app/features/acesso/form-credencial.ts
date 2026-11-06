@@ -1,3 +1,4 @@
+import { Mascara } from '../../shared/mascara';
 import { Component, computed, inject, input, output, signal } from '@angular/core';
 import { AbstractControl, FormBuilder, ReactiveFormsModule, ValidationErrors, Validators } from '@angular/forms';
 import { AutenticacaoApi } from '../../core/api/autenticacao.api';
@@ -20,24 +21,24 @@ export function confere(campoA: string, campoB: string) {
  */
 @Component({
   selector: 'app-form-credencial',
-  imports: [ReactiveFormsModule],
+  imports: [Mascara, ReactiveFormsModule],
   template: `
     <form [formGroup]="form" (ngSubmit)="enviar()" class="pilha" style="gap:16px">
       @if (!matriculaFixa()) {
         <div class="campo">
           <label for="fc-mat">Matrícula</label>
-          <input id="fc-mat" class="entrada" formControlName="matricula" placeholder="ENT-000001 ou FUN-000001" autocapitalize="characters">
+          <input id="fc-mat" class="entrada" mascara="matricula" formControlName="matricula" placeholder="ENT-000001 ou FUN-000001" autocapitalize="characters">
         </div>
       }
       <div class="campo">
         <label for="fc-atual">{{ ehPin() ? 'PIN atual' : 'Senha atual' }}</label>
         <input id="fc-atual" class="entrada" [class.entrada-pin]="ehPin()" type="password" formControlName="atual"
-               [attr.inputmode]="ehPin() ? 'numeric' : null" [attr.maxlength]="ehPin() ? 6 : null" autocomplete="current-password">
+               [mascara]="ehPin() ? 'pin' : 'livre'" autocomplete="current-password">
       </div>
       <div class="campo">
         <label for="fc-nova">{{ ehPin() ? 'Novo PIN' : 'Nova senha' }}</label>
         <input id="fc-nova" class="entrada" [class.entrada-pin]="ehPin()" type="password" formControlName="nova"
-               [attr.inputmode]="ehPin() ? 'numeric' : null" [attr.maxlength]="ehPin() ? 6 : null" autocomplete="new-password">
+               [mascara]="ehPin() ? 'pin' : 'livre'" autocomplete="new-password">
         <span class="dica">{{ ehPin() ? '6 números, sem sequência óbvia (123456, 111111…).' : 'Mínimo 10 caracteres, com letras e números.' }}</span>
         @if (form.controls.nova.touched && form.controls.nova.invalid) {
           <span class="erro"><span class="icone" style="font-size:16px">error</span>{{ ehPin() ? 'O PIN tem 6 números.' : 'Senha fraca: 10+ caracteres com letras e números.' }}</span>
@@ -46,7 +47,7 @@ export function confere(campoA: string, campoB: string) {
       <div class="campo">
         <label for="fc-conf">Repita {{ ehPin() ? 'o novo PIN' : 'a nova senha' }}</label>
         <input id="fc-conf" class="entrada" [class.entrada-pin]="ehPin()" type="password" formControlName="confirmacao"
-               [attr.inputmode]="ehPin() ? 'numeric' : null" [attr.maxlength]="ehPin() ? 6 : null" autocomplete="new-password">
+               [mascara]="ehPin() ? 'pin' : 'livre'" autocomplete="new-password">
         @if (form.controls.confirmacao.touched && form.hasError('naoConfere')) {
           <span class="erro"><span class="icone" style="font-size:16px">error</span>Não confere com o que você digitou acima.</span>
         }

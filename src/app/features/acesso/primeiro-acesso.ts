@@ -1,3 +1,4 @@
+import { Mascara } from '../../shared/mascara';
 import { Component, computed, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -10,7 +11,7 @@ import { confere, regraPin, regraSenha } from './form-credencial';
 /** Ativação: matrícula + código (gerado pelo Administrativo) → cadastra PIN (app) ou senha (painel). */
 @Component({
   selector: 'app-primeiro-acesso',
-  imports: [ReactiveFormsModule, RouterLink, Logo],
+  imports: [Mascara, ReactiveFormsModule, RouterLink, Logo],
   styleUrl: './acesso.scss',
   template: `
     <div class="faixa"><app-logo /></div>
@@ -21,17 +22,17 @@ import { confere, regraPin, regraSenha } from './form-credencial';
         <form [formGroup]="form" (ngSubmit)="ativar()">
           <div class="campo">
             <label for="pa-mat">Matrícula</label>
-            <input id="pa-mat" class="entrada" formControlName="matricula" placeholder="ENT-000001" autocapitalize="characters">
+            <input id="pa-mat" class="entrada" mascara="matricula" formControlName="matricula" placeholder="ENT-000001" autocapitalize="characters">
           </div>
           <div class="campo">
             <label for="pa-cod">Código de ativação</label>
-            <input id="pa-cod" class="entrada" formControlName="codigo" autocapitalize="characters" autocomplete="one-time-code">
+            <input id="pa-cod" class="entrada" mascara="codigo" formControlName="codigo" autocapitalize="characters" placeholder="8 letras ou números" autocomplete="one-time-code">
             <span class="dica">Vale 72 horas. Venceu? Peça um novo ao Administrativo.</span>
           </div>
           <div class="campo">
             <label for="pa-nova">{{ ehPin() ? 'Crie seu PIN' : 'Crie sua senha' }}</label>
             <input id="pa-nova" class="entrada" [class.entrada-pin]="ehPin()" type="password" formControlName="credencial"
-                   [attr.inputmode]="ehPin() ? 'numeric' : null" [attr.maxlength]="ehPin() ? 6 : null" autocomplete="new-password">
+                   [mascara]="ehPin() ? 'pin' : 'livre'" autocomplete="new-password">
             <span class="dica">{{ ehPin() ? '6 números, sem sequência óbvia. É com ele que você entra no app.' : 'Mínimo 10 caracteres, com letras e números. O login do painel é pelo e-mail.' }}</span>
             @if (form.controls.credencial.touched && form.controls.credencial.invalid) {
               <span class="erro">{{ ehPin() ? 'O PIN tem 6 números.' : 'Senha fraca: 10+ caracteres com letras e números.' }}</span>
@@ -40,7 +41,7 @@ import { confere, regraPin, regraSenha } from './form-credencial';
           <div class="campo">
             <label for="pa-conf">Repita</label>
             <input id="pa-conf" class="entrada" [class.entrada-pin]="ehPin()" type="password" formControlName="confirmacao"
-                   [attr.inputmode]="ehPin() ? 'numeric' : null" [attr.maxlength]="ehPin() ? 6 : null" autocomplete="new-password">
+                   [mascara]="ehPin() ? 'pin' : 'livre'" autocomplete="new-password">
             @if (form.controls.confirmacao.touched && form.hasError('naoConfere')) { <span class="erro">Não confere.</span> }
           </div>
           @if (erro()) { <div class="aviso erro"><span class="icone">error</span>{{ erro() }}</div> }

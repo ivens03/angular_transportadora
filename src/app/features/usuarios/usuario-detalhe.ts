@@ -1,3 +1,4 @@
+import { Mascara } from '../../shared/mascara';
 import { DatePipe } from '@angular/common';
 import { Component, OnInit, inject, input, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -17,7 +18,7 @@ import { CodigoAtivacaoCartao } from './codigo-ativacao';
  */
 @Component({
   selector: 'app-usuario-detalhe',
-  imports: [RouterLink, ReactiveFormsModule, DatePipe, EtiquetaStatus, CodigoAtivacaoCartao],
+  imports: [Mascara, RouterLink, ReactiveFormsModule, DatePipe, EtiquetaStatus, CodigoAtivacaoCartao],
   template: `
     <div class="conteudo" style="max-width:860px">
       <a class="voltar" routerLink="/painel/usuarios"><span class="icone">arrow_back</span> Usuários</a>
@@ -37,7 +38,7 @@ import { CodigoAtivacaoCartao } from './codigo-ativacao';
             <form class="card pilha" style="gap:14px" [formGroup]="form" (ngSubmit)="salvar()">
               <h2 class="card-titulo" style="margin:0">Dados</h2>
               <div class="campo"><label for="ud-nome">Nome</label><input id="ud-nome" class="entrada" formControlName="nome" maxlength="150"></div>
-              <div class="campo"><label for="ud-email">E-mail</label><input id="ud-email" class="entrada" type="email" formControlName="email" maxlength="200">
+              <div class="campo"><label for="ud-email">E-mail</label><input id="ud-email" class="entrada" type="email" mascara="email" formControlName="email" maxlength="200">
                 @if (u.vinculo === 'INTERNO') { <span class="dica">Login do painel.</span> }</div>
               <div class="linha"><button class="btn btn-primario" type="submit" [disabled]="form.pristine || ocupado()">Salvar</button></div>
             </form>

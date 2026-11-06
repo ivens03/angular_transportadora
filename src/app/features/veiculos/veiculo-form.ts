@@ -1,3 +1,4 @@
+import { Mascara } from '../../shared/mascara';
 import { Component, OnInit, computed, inject, input, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
@@ -12,7 +13,7 @@ const PLACA = /^[A-Za-z]{3}-?\d[A-Za-z0-9]\d{2}$/;
 /** Novo veículo (POST) ou edição (PATCH — placa, capacidades, consumo, km e status; RENAVAM/ano/tipo/combustível são fixos). */
 @Component({
   selector: 'app-veiculo-form',
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [Mascara, ReactiveFormsModule, RouterLink],
   template: `
     <div class="conteudo" style="max-width:860px">
       <a class="voltar" [routerLink]="id() ? ['/painel/veiculos', id()] : '/painel/veiculos'"><span class="icone">arrow_back</span> {{ id() ? 'Veículo' : 'Frota' }}</a>
@@ -25,12 +26,12 @@ const PLACA = /^[A-Za-z]{3}-?\d[A-Za-z0-9]\d{2}$/;
           <div class="form-grade">
             <div class="campo">
               <label for="vf-placa">Placa</label>
-              <input id="vf-placa" class="entrada" formControlName="placa" placeholder="ABC1D23" maxlength="8" style="text-transform:uppercase">
+              <input id="vf-placa" class="entrada" mascara="placa" formControlName="placa" placeholder="ABC1D23">
               @if (inv('placa')) { <span class="erro">{{ srv('placa') ?? 'Placa inválida (ABC1234 ou ABC1D23).' }}</span> }
             </div>
             <div class="campo">
               <label for="vf-ren">RENAVAM <span class="texto-3">(opcional)</span></label>
-              <input id="vf-ren" class="entrada" inputmode="numeric" formControlName="renavam" maxlength="11">
+              <input id="vf-ren" class="entrada" mascara="renavam" formControlName="renavam" placeholder="11 números">
               @if (inv('renavam')) { <span class="erro">{{ srv('renavam') ?? 'O RENAVAM tem 11 dígitos.' }}</span> }
             </div>
             <div class="campo">
@@ -50,7 +51,7 @@ const PLACA = /^[A-Za-z]{3}-?\d[A-Za-z0-9]\d{2}$/;
             <div class="grade-2">
               <div class="campo">
                 <label for="vf-ano">Ano</label>
-                <input id="vf-ano" class="entrada" type="number" inputmode="numeric" formControlName="anoFabricacao">
+                <input id="vf-ano" class="entrada" mascara="ano" formControlName="anoFabricacao">
               </div>
               <div class="campo">
                 <label for="vf-comb">Combustível</label>
@@ -67,20 +68,20 @@ const PLACA = /^[A-Za-z]{3}-?\d[A-Za-z0-9]\d{2}$/;
           <div class="form-grade">
             <div class="campo">
               <label for="vf-kg">Carga máxima (kg)</label>
-              <input id="vf-kg" class="entrada" type="number" inputmode="decimal" formControlName="capacidadeCargaKg">
+              <input id="vf-kg" class="entrada" mascara="decimal:2" formControlName="capacidadeCargaKg" placeholder="650">
             </div>
             <div class="campo">
               <label for="vf-m3">Volume do baú (m³)</label>
-              <input id="vf-m3" class="entrada" type="number" inputmode="decimal" step="0.01" formControlName="capacidadeVolumeM3">
+              <input id="vf-m3" class="entrada" mascara="decimal:2" formControlName="capacidadeVolumeM3" placeholder="3,10">
             </div>
             <div class="campo">
               <label for="vf-ref">Consumo de referência (km/l) <span class="texto-3">(opcional)</span></label>
-              <input id="vf-ref" class="entrada" type="number" inputmode="decimal" step="0.1" formControlName="consumoReferenciaKmPorLitro">
+              <input id="vf-ref" class="entrada" mascara="decimal:2" formControlName="consumoReferenciaKmPorLitro" placeholder="11,5">
               <span class="dica">Média do fabricante ou histórico. Sem ela, não há alerta de consumo.</span>
             </div>
             <div class="campo">
               <label for="vf-km">Quilometragem atual</label>
-              <input id="vf-km" class="entrada" type="number" inputmode="numeric" formControlName="quilometragemAtual">
+              <input id="vf-km" class="entrada" mascara="inteiro" formControlName="quilometragemAtual" placeholder="15.230">
               @if (srv('quilometragemAtual')) { <span class="erro">{{ srv('quilometragemAtual') }}</span> }
             </div>
             @if (id()) {
