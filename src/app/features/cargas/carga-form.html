@@ -129,24 +129,37 @@
     @if (!carga()) {
       <section class="card">
         <h2 class="card-titulo">Quem leva <span class="texto-3 pequeno">(opcional)</span></h2>
-        <p class="pequeno texto-2" style="margin-bottom:12px">Escolha o entregador e o veículo para a entrega já sair numa rota. Sem isso, ela fica na fila para montar a rota depois.</p>
+        <p class="pequeno texto-2" style="margin-bottom:12px">Escolha o entregador e o veículo para a entrega já sair numa rota. Se ele já tem rota que ainda não saiu, a entrega entra nela. Sem isso, ela fica na fila para montar a rota depois.</p>
         <div class="form-grade">
           <div class="campo">
             <label for="cf-ent">Entregador</label>
-            <select id="cf-ent" class="entrada" [value]="entregadorMatricula" (change)="entregadorMatricula = $any($event.target).value">
+            <select id="cf-ent" class="entrada" [value]="entregadorMatricula()" (change)="escolherEntregador($any($event.target).value)">
               <option value="">Definir depois</option>
-              @for (e of entregadores(); track e.matricula) { <option [value]="e.matricula">{{ e.nome }} · {{ e.matricula }}</option> }
+              @for (e of entregadores(); track e.matricula) {
+                @let r = rotaDe('entregadorMatricula', e.matricula);
+                <option [value]="e.matricula" [disabled]="r?.status === 'EM_ANDAMENTO'">
+                  {{ e.nome }} · {{ e.matricula }}{{ r ? (r.status === 'EM_ANDAMENTO' ? ' — na rua agora (' + r.codigo + ')' : ' — tem a ' + r.codigo + ' (ainda não saiu)') : '' }}
+                </option>
+              }
             </select>
           </div>
           <div class="campo">
             <label for="cf-vei">Veículo</label>
-            <select id="cf-vei" class="entrada" (change)="veiculoId = $any($event.target).value ? +$any($event.target).value : null">
+            <select id="cf-vei" class="entrada" [value]="veiculoId() ?? ''" [disabled]="!!rotaDoEntregador()"
+                    (change)="veiculoId.set($any($event.target).value ? +$any($event.target).value : null)">
               <option value="">Definir depois</option>
-              @for (v of veiculos(); track v.id) { <option [value]="v.id">{{ v.placa }} · {{ v.modelo }}</option> }
+              @for (v of veiculos(); track v.id) {
+                @let r = rotaDe('veiculoId', v.id);
+                <option [value]="v.id" [disabled]="!!r && r.id !== rotaDoEntregador()?.id">
+                  {{ v.placa }} · {{ v.modelo }}{{ r && r.id !== rotaDoEntregador()?.id ? ' — em uso na ' + r.codigo : '' }}
+                </option>
+              }
             </select>
           </div>
         </div>
-        @if (!!entregadorMatricula !== !!veiculoId) {
+        @if (rotaDoEntregador(); as r) {
+          <span class="dica"><span class="icone">alt_route</span> Entra na rota {{ r.codigo }} ({{ r.veiculoPlaca }}, {{ r.totalParadas }} parada(s)): a ordem das paradas é recalculada.</span>
+        } @else if (!!entregadorMatricula() !== !!veiculoId()) {
           <span class="dica laranja">Escolha os dois (entregador e veículo) para gerar a rota.</span>
         }
       </section>
@@ -161,7 +174,7 @@
         }
         <button class="btn btn-primario" type="submit" [disabled]="salvando()">
           @if (salvando()) { <span class="icone girando">progress_activity</span> }
-          {{ carga() ? 'Salvar alterações' : (entregadorMatricula && veiculoId ? 'Cadastrar e gerar rota' : 'Cadastrar entrega') }}
+          {{ carga() ? 'Salvar alterações' : rotaDoEntregador() ? 'Cadastrar e incluir na ' + rotaDoEntregador()!.codigo : podeLevar() ? 'Cadastrar e gerar rota' : 'Cadastrar entrega' }}
         </button>
       </div>
     }

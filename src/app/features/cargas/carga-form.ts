@@ -12,7 +12,7 @@ import { formatarCnpj } from '../../core/cnpj';
 import { EnderecoApi } from '../../core/api/endereco.api';
 import { AvisoService } from '../../core/aviso.service';
 import { aplicarErrosDeCampo, erroApi } from '../../core/erro';
-import { Carga, CargaForm, Cliente, Entregador, Veiculo } from '../../core/modelos';
+import { Carga, CargaForm, Cliente, Entregador, RotaResumo, Veiculo } from '../../core/modelos';
 import { EtiquetaStatus } from '../../shared/etiqueta-status';
 import { MapaPonto } from '../../shared/mapa/mapa-ponto';
 
@@ -56,8 +56,14 @@ export class CargaFormulario implements OnInit {
     this.empresas().find(e => e.matricula === this.clienteMatricula()) ?? null);
   /** Espelho do campo clienteMatricula em signal (para o computed acima). */
   protected readonly clienteMatricula = signal('');
-  protected entregadorMatricula = '';
-  protected veiculoId: number | null = null;
+  protected readonly entregadorMatricula = signal('');
+  protected readonly veiculoId = signal<number | null>(null);
+  /** Rotas que ainda não terminaram: quem está nelas não pode ganhar outra rota. */
+  protected readonly rotasAtivas = signal<RotaResumo[]>([]);
+  /** Entregador escolhido já tem rota PLANEJADA: a entrega entra nela (com o veículo dela). */
+  protected readonly rotaDoEntregador = computed(() =>
+    this.rotasAtivas().find(r => r.entregadorMatricula === this.entregadorMatricula() && r.status === 'PLANEJADA') ?? null);
+  protected readonly podeLevar = computed(() => !!this.rotaDoEntregador() || (!!this.entregadorMatricula() && !!this.veiculoId()));
 
   protected readonly carga = signal<Carga | null>(null);
   protected readonly salvando = signal(false);
@@ -97,6 +103,9 @@ export class CargaFormulario implements OnInit {
     if (!id) {
       this.usuariosApi.entregadores('ATIVO').subscribe({ next: p => this.entregadores.set(p.content) });
       this.veiculosApi.listar({ status: 'ATIVO', size: 100, sort: 'placa' }).subscribe({ next: p => this.veiculos.set(p.content) });
+      for (const status of ['PLANEJADA', 'EM_ANDAMENTO'] as const) {
+        this.rotasApi.listar({ status, size: 100 }).subscribe({ next: p => this.rotasAtivas.update(rs => [...rs, ...p.content]) });
+      }
       return;
     }
     this.api.buscar(Number(id)).subscribe({
@@ -185,7 +194,7 @@ export class CargaFormulario implements OnInit {
     const pedido$ = atual ? this.api.atualizar(atual.id, this.diferencas(atual, dados)) : this.api.cadastrar(dados);
     pedido$.subscribe({
       next: c => {
-        if (!atual && this.entregadorMatricula && this.veiculoId) { this.gerarRota(c); return; }
+        if (!atual && this.podeLevar()) { this.gerarRota(c); return; }
         this.avisos.sucesso(atual ? 'Carga atualizada.' : `Carga ${c.codigo} cadastrada.`);
         this.router.navigate(['/painel/cargas']);
       },
@@ -198,16 +207,37 @@ export class CargaFormulario implements OnInit {
     });
   }
 
-  /** Entregador e veículo escolhidos: a carga já sai numa rota só dela (o entregador vê em "Minhas rotas"). */
+  /** Rota ativa em que o entregador ou o veículo está (para mostrar ocupado na lista). */
+  protected rotaDe(campo: 'entregadorMatricula' | 'veiculoId', valor: string | number): RotaResumo | undefined {
+    return this.rotasAtivas().find(r => r[campo] === valor);
+  }
+
+  protected escolherEntregador(matricula: string): void {
+    this.entregadorMatricula.set(matricula);
+    // com rota planejada, o veículo é o da rota
+    const rota = this.rotaDoEntregador();
+    if (rota) this.veiculoId.set(rota.veiculoId);
+  }
+
+  /**
+   * Entregador escolhido: a carga entra na rota PLANEJADA dele (se já tem uma) ou sai numa rota nova só dela,
+   * com o veículo escolhido. Ele vê em "Minhas rotas" no app.
+   */
   private gerarRota(c: Carga): void {
-    const entregador = this.entregadores().find(e => e.matricula === this.entregadorMatricula)?.nome ?? this.entregadorMatricula;
-    this.rotasApi.gerar({ veiculoId: this.veiculoId!, entregadorMatricula: this.entregadorMatricula, cargaIds: [c.id] }).subscribe({
+    const entregador = this.entregadores().find(e => e.matricula === this.entregadorMatricula())?.nome ?? this.entregadorMatricula();
+    const existente = this.rotaDoEntregador();
+    const pedido$ = existente
+      ? this.rotasApi.incluirCargas(existente.id, [c.id])
+      : this.rotasApi.gerar({ veiculoId: this.veiculoId()!, entregadorMatricula: this.entregadorMatricula(), cargaIds: [c.id] });
+    pedido$.subscribe({
       next: r => {
-        this.avisos.sucesso(`Carga ${c.codigo} cadastrada e rota ${r.codigo} criada para ${entregador}.`);
+        this.avisos.sucesso(existente
+          ? `Carga ${c.codigo} cadastrada e incluída na rota ${r.codigo} de ${entregador}.`
+          : `Carga ${c.codigo} cadastrada e rota ${r.codigo} criada para ${entregador}.`);
         this.router.navigate(['/painel/rotas', r.id]);
       },
       error: e => {
-        this.avisos.erro(`Carga ${c.codigo} cadastrada, mas a rota não foi criada: ${erroApi(e).mensagem} Monte em Rotas.`);
+        this.avisos.erro(`Carga ${c.codigo} cadastrada, mas não entrou em rota: ${erroApi(e).mensagem} Monte em Rotas.`);
         this.router.navigate(['/painel/cargas']);
       },
     });

@@ -34,6 +34,11 @@ export class RotasApi {
     return this.http.post<Rota>(this.url, rota);
   }
 
+  /** Inclui cargas numa rota que ainda não saiu (PLANEJADA); a API recalcula a ordem das paradas. */
+  incluirCargas(id: number, cargaIds: number[]) {
+    return this.http.post<Rota>(`${this.url}/${id}/cargas`, { cargaIds });
+  }
+
   /** EM_ANDAMENTO = iniciar (entregador); CANCELADA = cancelar (Suporte, só PLANEJADA). */
   mudarStatus(id: number, status: StatusRota) {
     return this.http.patch<Rota>(`${this.url}/${id}`, { status }, MERGE_PATCH);

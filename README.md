@@ -66,6 +66,9 @@ permissão nem vê o item (e, se digitar a URL, volta para o início).
 2. **Suporte** cria a **nova entrega** (`/painel/cargas/nova`): escolhe a empresa (o destino vem do endereço dela),
    diz o que vai (descrição, peso, volume) e, se quiser, **quem leva** (entregador e veículo). Com os dois escolhidos,
    o botão vira **Cadastrar e gerar rota**: a carga é salva e a rota com ela sai pronta, já no app do entregador.
+   Se o entregador **já tem rota que ainda não saiu**, a entrega entra nela (com o veículo dela) e a ordem das
+   paradas é recalculada — o botão vira **Cadastrar e incluir na ROT-…**. Entregador já na rua e veículo em uso
+   em outra rota aparecem desabilitados na lista.
    Sem eles, a carga fica *aguardando rota* para o passo seguinte.
    Também dá para criar carga avulsa, sem empresa (destinatário digitado), como antes.
 3. **Suporte** monta a rota (quando juntou várias entregas): escolhe as cargas → veículo (barras de capacidade de peso/volume) e entregador → revisa → **Gerar rota**. A ordem das paradas vem da API.
