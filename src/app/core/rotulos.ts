@@ -10,6 +10,14 @@ export const ROTULOS: Record<string, Record<string, Rotulo>> = {
     ENTREGUE: { texto: 'Entregue', cor: 'verde', icone: 'check_circle' },
     CANCELADA: { texto: 'Cancelada', cor: 'cinza', icone: 'block' },
   },
+  /** A mesma carga, com as palavras do cliente (Portal do Cliente). */
+  encomenda: {
+    AGUARDANDO_ROTA: { texto: 'Preparando', cor: 'amarelo', icone: 'inventory_2' },
+    ROTEIRIZADA: { texto: 'Separada para entrega', cor: 'azul', icone: 'alt_route' },
+    EM_TRANSITO: { texto: 'A caminho', cor: 'azul', icone: 'local_shipping' },
+    ENTREGUE: { texto: 'Entregue', cor: 'verde', icone: 'check_circle' },
+    CANCELADA: { texto: 'Cancelada', cor: 'cinza', icone: 'block' },
+  },
   rota: {
     PLANEJADA: { texto: 'Planejada', cor: 'amarelo', icone: 'event' },
     EM_ANDAMENTO: { texto: 'Em andamento', cor: 'azul', icone: 'local_shipping' },
@@ -52,6 +60,7 @@ export const COMBUSTIVEIS: Record<string, string> = { GASOLINA: 'Gasolina', ETAN
 
 export const PERFIS: Record<string, { texto: string; icone: string }> = {
   ENTREGADOR: { texto: 'Entregador', icone: 'two_wheeler' },
+  CLIENTE: { texto: 'Cliente', icone: 'storefront' },
   ADMINISTRATIVO: { texto: 'Administrativo', icone: 'badge' },
   SUPORTE: { texto: 'Suporte', icone: 'support_agent' },
   FINANCEIRO: { texto: 'Financeiro', icone: 'payments' },

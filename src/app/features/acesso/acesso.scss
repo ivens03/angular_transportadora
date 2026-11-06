@@ -5,9 +5,13 @@
 h1 { font-size: 22px; margin-bottom: 4px; }
 .sub { color: var(--rc-texto-2); font-size: 14px; margin-bottom: 20px; }
 form { display: flex; flex-direction: column; gap: 16px; }
-.abas { display: grid; grid-template-columns: 1fr 1fr; background: var(--rc-cinza-suave); border-radius: 8px; padding: 4px; margin-bottom: 20px; }
+.abas { display: grid; grid-template-columns: repeat(3, 1fr); background: var(--rc-cinza-suave); border-radius: 8px; padding: 4px; margin-bottom: 20px; }
 .abas button { display: flex; align-items: center; justify-content: center; gap: 6px; min-height: 44px; border: 0; border-radius: 6px; background: none; font-weight: 600; font-size: 14px; color: var(--rc-texto-2); cursor: pointer; }
 .abas button .icone { font-size: 20px; }
+/* celular estreito: ícone em cima do texto para as três abas caberem */
+@media (max-width: 479px) {
+  .abas button { flex-direction: column; gap: 2px; min-height: 56px; font-size: 13px; line-height: 1.15; text-align: center; }
+}
 .abas button.ativa { background: #fff; color: var(--rc-texto); box-shadow: var(--rc-sombra); }
 .senha { position: relative; }
 .senha .entrada { padding-right: 48px; }

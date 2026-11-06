@@ -1,17 +1,19 @@
 import { inject } from '@angular/core';
 import { Routes } from '@angular/router';
-import { comPermissao, soDeslogado, soEntregador, soPainel } from './core/auth/guardas';
+import { comPermissao, soCliente, soDeslogado, soEntregador, soPainel } from './core/auth/guardas';
 import { SessaoService } from './core/auth/sessao.service';
 import { Permissao } from './core/modelos';
 import { AppLayout } from './layout/app-layout';
+import { ClienteLayout } from './layout/cliente-layout';
 import { PainelLayout } from './layout/painel-layout';
 
 const t = (titulo: string) => `${titulo} · RotaCerta`;
 
 /**
- * Duas "casas":
+ * Três "casas":
  *  /app     → entregador (credencial APP_ENTREGADOR), pensado 100% para celular
  *  /painel  → funcionários (PAINEL_WEB); cada seção exige a mesma permissão que a API exige
+ *  /cliente → Portal do Cliente (perfil CLIENTE): encomendas, entregador no mapa, entregues
  * Toda tela é carregada sob demanda (loadComponent) para o celular baixar só o que usa.
  */
 export const routes: Routes = [
@@ -31,6 +33,14 @@ export const routes: Routes = [
       { path: 'rotas', title: t('Minhas rotas'), loadComponent: () => import('./features/entregador/minhas-rotas').then(m => m.MinhasRotas) },
       { path: 'rotas/:id', title: t('Rota'), loadComponent: () => import('./features/entregador/rota-execucao').then(m => m.RotaExecucao) },
       { path: 'conta', title: t('Minha conta'), loadComponent: () => import('./features/conta/conta').then(m => m.Conta) },
+    ],
+  },
+
+  {
+    path: 'cliente', component: ClienteLayout, canMatch: [soCliente],
+    children: [
+      { path: '', title: t('Minhas encomendas'), loadComponent: () => import('./features/cliente/minhas-encomendas').then(m => m.MinhasEncomendas) },
+      { path: 'encomendas/:codigo', title: t('Encomenda'), loadComponent: () => import('./features/cliente/encomenda-detalhe').then(m => m.EncomendaDetalhe) },
     ],
   },
 

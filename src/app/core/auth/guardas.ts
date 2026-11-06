@@ -12,14 +12,21 @@ function paraLogin(segmentos: UrlSegment[]) {
 export const soEntregador: CanMatchFn = (_rota, segmentos) => {
   const s = inject(SessaoService);
   if (!s.logado()) return paraLogin(segmentos);
-  return s.ehEntregador() || inject(Router).createUrlTree(['/painel']);
+  return s.ehEntregador() || inject(Router).createUrlTree([s.inicio()]);
 };
 
-/** Só deixa entrar no painel quem tem credencial PAINEL_WEB. */
+/** Só deixa entrar no painel quem é funcionário (credencial PAINEL_WEB e não é cliente). */
 export const soPainel: CanMatchFn = (_rota, segmentos) => {
   const s = inject(SessaoService);
   if (!s.logado()) return paraLogin(segmentos);
-  return !s.ehEntregador() || inject(Router).createUrlTree(['/app']);
+  return (!s.ehEntregador() && !s.ehCliente()) || inject(Router).createUrlTree([s.inicio()]);
+};
+
+/** Portal do Cliente: só o perfil CLIENTE (a API ainda confere a permissão encomenda:acompanhar). */
+export const soCliente: CanMatchFn = (_rota, segmentos) => {
+  const s = inject(SessaoService);
+  if (!s.logado()) return paraLogin(segmentos);
+  return s.ehCliente() || inject(Router).createUrlTree([s.inicio()]);
 };
 
 /** Tela de login: quem já está logado vai direto para o início. */

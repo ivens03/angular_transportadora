@@ -22,6 +22,8 @@ export class SessaoService {
   readonly token = computed(() => this.estado()?.token ?? null);
   readonly logado = computed(() => this.estado() !== null);
   readonly ehEntregador = computed(() => this.sessao()?.tipoCredencial === 'APP_ENTREGADOR');
+  /** Cliente entra com e-mail + senha (como o painel), mas a "casa" dele é o portal /cliente. */
+  readonly ehCliente = computed(() => this.sessao()?.perfil === 'CLIENTE');
   readonly primeiroNome = computed(() => this.sessao()?.nome.split(' ')[0] ?? '');
   /** Dias até a senha/PIN vencer (o back-end exige troca a cada 30 dias). */
   readonly diasParaVencer = computed(() => {
@@ -48,7 +50,7 @@ export class SessaoService {
 
   /** Para onde vai quem acabou de entrar. */
   inicio(): string {
-    return this.ehEntregador() ? '/app' : '/painel';
+    return this.ehEntregador() ? '/app' : this.ehCliente() ? '/cliente' : '/painel';
   }
 
   sair(motivo?: 'expirou'): void {

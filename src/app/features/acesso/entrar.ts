@@ -6,12 +6,13 @@ import { SessaoService } from '../../core/auth/sessao.service';
 import { erroApi } from '../../core/erro';
 import { Logo } from '../../shared/logo';
 
-type Modo = 'app' | 'painel';
+type Modo = 'app' | 'painel' | 'cliente';
 
 /**
  * Login com as duas credenciais da API:
  *  - entregador: matrícula + PIN (POST /auth/app/tokens)
  *  - funcionário: e-mail + senha (POST /auth/painel/tokens)
+ *  - cliente: também e-mail + senha (mesmo endpoint); depois do login cai no portal /cliente
  * Senha/PIN vencido (403 CREDENCIAL_EXPIRADA) leva para a troca obrigatória.
  */
 @Component({
@@ -39,6 +40,9 @@ type Modo = 'app' | 'painel';
           <button type="button" role="tab" [class.ativa]="modo() === 'painel'" [attr.aria-selected]="modo() === 'painel'" (click)="trocarModo('painel')">
             <span class="icone">badge</span> Sou da empresa
           </button>
+          <button type="button" role="tab" [class.ativa]="modo() === 'cliente'" [attr.aria-selected]="modo() === 'cliente'" (click)="trocarModo('cliente')">
+            <span class="icone">storefront</span> Sou cliente
+          </button>
         </div>
 
         @if (modo() === 'app') {
@@ -60,8 +64,9 @@ type Modo = 'app' | 'painel';
         } @else {
           <form [formGroup]="painel" (ngSubmit)="entrar()">
             <div class="campo">
-              <label for="email">E-mail corporativo</label>
+              <label for="email">{{ modo() === 'cliente' ? 'E-mail' : 'E-mail corporativo' }}</label>
               <input id="email" class="entrada" type="email" formControlName="email" placeholder="nome@empresa.com" autocomplete="username">
+              @if (modo() === 'cliente') { <span class="dica">Acompanhe suas encomendas e veja o entregador a caminho.</span> }
             </div>
             <div class="campo">
               <label for="senha">Senha</label>

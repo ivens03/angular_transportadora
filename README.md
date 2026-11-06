@@ -1,7 +1,7 @@
 # RotaCerta — front-end (Angular)
 
-Telas do RotaCerta para o **app do entregador** (celular) e o **painel da empresa** (Suporte, Administrativo,
-Financeiro, Desenvolvimento). Consome a API do projeto irmão [`spring.transportadora`](../spring.transportadora).
+Telas do RotaCerta para o **app do entregador** (celular), o **painel da empresa** (Suporte, Administrativo,
+Financeiro, Desenvolvimento) e o **Portal do Cliente** (acompanhar as próprias encomendas). Consome a API do projeto irmão [`spring.transportadora`](../spring.transportadora).
 
 - Angular 22 (standalone, signals, sem zone.js), TypeScript 6, SCSS próprio (sem biblioteca de UI)
 - Leaflet + OpenStreetMap para os mapas
@@ -25,7 +25,8 @@ No IntelliJ: abra a pasta e use a configuração **Front (ng serve)** (pasta `.r
 O GPS do navegador só funciona em HTTPS (ou localhost) — por isso o `--ssl`; aceite o aviso do certificado.
 
 Para entrar, use as contas fixas de teste do perfil dev (dados no `.env` da API): o entregador entra pela aba
-**Sou entregador** (matrícula + PIN) e os funcionários pela aba **Sou da empresa** (e-mail + senha).
+**Sou entregador** (matrícula + PIN), os funcionários pela aba **Sou da empresa** e o cliente pela aba
+**Sou cliente** (as duas com e-mail + senha; a API diz o perfil e o front leva cada um para a sua área).
 
 ## Deploy (Dokploy, a cada push na `main`)
 
@@ -47,6 +48,7 @@ API e o resto para cá. Mesmo domínio, então não precisa de CORS. Detalhes no
 | Perfil | Onde | Telas |
 |---|---|---|
 | Entregador | `/app` | minhas rotas, execução da rota (mapa, próxima entrega, baixa, GPS), conta |
+| Cliente | `/cliente` | minhas encomendas em três blocos — **a caminho agora** (rua do entregador, quanto falta, quantas entregas antes da sua), **vão ser entregues** e **já entregues** — e o rastreio com o entregador andando no mapa |
 | Suporte | `/painel` | cargas (cadastro com CEP e ponto no mapa), montar rota, acompanhar rota ao vivo, frota |
 | Administrativo | `/painel` | usuários (cadastro + código de ativação, bloqueio, novo código), frota |
 | Financeiro | `/painel` | consumo da frota (km/l, R$/km, alertas), frota e abastecimentos |
@@ -64,6 +66,13 @@ permissão nem vê o item (e, se digitar a URL, volta para o início).
 4. A cada parada: **Entregue** ou **Não consegui entregar** (com motivo). A última baixa conclui a rota.
 5. **Suporte** acompanha no mapa: trajeto planejado (tracejado), percurso real (azul), posição atual e progresso,
    atualizando sozinho a cada poucos segundos.
+6. **Cliente** acompanha no Portal (`/cliente`): com a encomenda a caminho, vê o veículo andando no mapa, a rua e o
+   bairro onde ele está ("Na Avenida João Pessoa, Montese"), quanto falta e a hora prevista; depois, ela passa
+   para "Já entregues" com a hora da entrega. A tela se atualiza sozinha.
+
+> **Privacidade no Portal do Cliente:** o mapa mostra só o destino do cliente, o veículo e o rastro que ele fez
+> enquanto a tela está aberta, nunca a rota inteira (ela passa pelo endereço de outros clientes). A API já
+> filtra: encomenda de outro cliente responde 404.
 
 > No perfil dev, a tela da rota tem **Simular deslocamento (demo)**: o "carro" anda pelo trajeto e espera em cada
 > parada até a baixa — bom para apresentar sem sair de casa. Some no build de produção (`environment.simuladorGps`).
@@ -79,8 +88,8 @@ src/app/
     erro.ts             lê o ErroResponse da API e pendura erros de campo no formulário
     rotulos.ts          textos/cores dos enums (status, tipos, perfis)
   shared/               componentes reutilizáveis (etiqueta de status, mapa, folha inferior, paginação, vazio…)
-  layout/               casca do painel (cabeçalho, menu) e do app (navegação inferior)
-  features/             uma pasta por área: acesso, entregador, inicio, cargas, rotas, veiculos, consumo, usuarios, conta, monitoramento
+  layout/               casca do painel (cabeçalho, menu), do app (navegação inferior) e do portal do cliente
+  features/             uma pasta por área: acesso, entregador, cliente, inicio, cargas, rotas, veiculos, consumo, usuarios, conta, monitoramento
 src/styles.scss         design system (cores, botões, campos, cartões, listas) — mobile first
 src/environments/       URL da API e ajustes de GPS por ambiente
 ```
@@ -97,7 +106,7 @@ src/environments/       URL da API e ajustes de GPS por ambiente
 - **Parâmetros de rota como `input()`** — com `withComponentInputBinding()` (em `app.config.ts`), o `:id` da URL e os
   `?status=` chegam direto como `input()` do componente. Os filtros das listas moram na URL: dá para compartilhar o link.
 - **Lazy loading** — cada tela é carregada sob demanda (`loadComponent` em `app.routes.ts`): o celular baixa só o que usa.
-- **Guards** (`core/auth/guardas.ts`) — funções que decidem se uma rota abre (`soEntregador`, `soPainel`, `comPermissao`).
+- **Guards** (`core/auth/guardas.ts`) — funções que decidem se uma rota abre (`soEntregador`, `soPainel`, `soCliente`, `comPermissao`).
 - **Interceptor** (`core/auth/token.interceptor.ts`) — põe `Authorization: Bearer` em toda chamada à API e, num 401, encerra a sessão.
 - **Reactive Forms tipados** — `FormBuilder.nonNullable.group({...})` com validadores iguais aos do back-end; os erros
   de campo que a API devolve (400) aparecem embaixo do campo certo.

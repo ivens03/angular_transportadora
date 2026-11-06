@@ -24,9 +24,9 @@ export interface ErroApi {
 export interface Ponto { latitude: number; longitude: number; }
 
 // ---------- acesso ----------
-export type Perfil = 'ENTREGADOR' | 'ADMINISTRATIVO' | 'SUPORTE' | 'FINANCEIRO' | 'DESENVOLVIMENTO';
+export type Perfil = 'ENTREGADOR' | 'CLIENTE' | 'ADMINISTRATIVO' | 'SUPORTE' | 'FINANCEIRO' | 'DESENVOLVIMENTO';
 export type TipoCredencial = 'APP_ENTREGADOR' | 'PAINEL_WEB';
-export type Vinculo = 'EXTERNO' | 'INTERNO';
+export type Vinculo = 'EXTERNO' | 'CLIENTE' | 'INTERNO';
 export type Departamento = 'ADMINISTRATIVO' | 'SUPORTE' | 'FINANCEIRO' | 'DESENVOLVIMENTO';
 export type StatusUsuario = 'PENDENTE_ATIVACAO' | 'ATIVO' | 'BLOQUEADO';
 
@@ -66,6 +66,8 @@ export const Permissao = {
   MAPA_ACOMPANHAR: 'mapa:acompanhar',
   MENSAGERIA_MONITORAR: 'mensageria:monitorar',
   DISPOSITIVO_CONSULTAR_LOGS: 'dispositivo:consultar-logs',
+  ENCOMENDA_ACOMPANHAR: 'encomenda:acompanhar',
+  WEBHOOK_GERENCIAR: 'webhook:gerenciar',
 } as const;
 
 // ---------- usuários ----------
@@ -287,3 +289,63 @@ export interface NovaPosicao {
 }
 
 export interface LotePosicoesResposta { recebidas: number; gravadas: number; duplicadas: number; }
+
+// ---------- portal do cliente (encomenda/dto/response) ----------
+/** A carga como o cliente vê (sem peso, quem cadastrou etc.). */
+export interface EncomendaResumo {
+  codigo: string;
+  descricao: string;
+  status: StatusCarga;
+  destinatarioNome: string;
+  endereco: string;
+  bairro: string;
+  cidade: string;
+  uf: string;
+  cep: string | null;
+  latitude: number;
+  longitude: number;
+  tentativasEntrega: number;
+  criadaEm: string;
+  atualizadaEm: string;
+}
+
+export interface LocalizacaoVeiculo {
+  latitude: number;
+  longitude: number;
+  velocidadeKmH: number | null;
+  registradaEm: string;
+  /** Rua pela posição (OpenStreetMap); nula quando o mapa não sabe. */
+  rua: string | null;
+  bairro: string | null;
+}
+
+/** Só existe com a encomenda numa rota. Localização e previsão só com ela a caminho. */
+export interface Rastreio {
+  rotaCodigo: string;
+  rotaStatus: StatusRota;
+  entregador: string;
+  veiculoModelo: string;
+  veiculoPlaca: string;
+  ordemParada: number;
+  /** Entregas pendentes antes da sua (0 = é a próxima). */
+  entregasAntes: number | null;
+  localizacao: LocalizacaoVeiculo | null;
+  distanciaKm: number | null;
+  previsaoMinutos: number | null;
+  previsaoChegadaEm: string | null;
+  entregueEm: string | null;
+}
+
+export interface EventoEncomenda {
+  tipo: string;
+  descricao: string;
+  rotaCodigo: string | null;
+  detalhe: string | null;
+  ocorridoEm: string;
+}
+
+export interface Encomenda {
+  encomenda: EncomendaResumo;
+  rastreio: Rastreio | null;
+  eventos: EventoEncomenda[];
+}
